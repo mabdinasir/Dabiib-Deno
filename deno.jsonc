@@ -1,0 +1,46 @@
+{
+	"tasks": {
+		"dev": "deno run --watch server.ts"
+	},
+
+	"imports": {
+		// The dollar sign in front of "std" isn't special - it's an optional
+		// convention to show that $std is an alias set up in an import map
+		"$std/": "https://deno.land/std@0.202.0/"
+	},
+
+	"fmt": {
+		"useTabs": true,
+		"semiColons": true,
+		"singleQuote": false,
+    "include": ["src/"]
+	},
+
+	"lint": {
+		"include": ["src/"],
+		"exclude": ["src/testdata/"],
+		"rules": {
+			"tags": ["recommended"],
+			"include": [
+				"no-unused-vars",
+				"no-explicit-any",
+				"no-irregular-whitespace",
+				"no-await-in-sync-fn",
+				"no-deprecated-deno-api",
+				"no-dupe-args",
+				"no-dupe-else-if",
+				"no-dupe-keys",
+				"no-empty",
+				"no-empty-interface",
+				"no-extra-non-null-assertion",
+				"no-redeclare",
+				"no-unsafe-finally",
+				"prefer-as-const",
+				"prefer-const",
+				"require-await",
+				"require-yield",
+				""
+			]
+		}
+	}
+}

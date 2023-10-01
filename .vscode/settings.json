@@ -1,4 +1,18 @@
 {
-  "deno.cacheOnSave": true,
-  "deno.enable": true
+	"deno.enable": true,
+	"deno.lint": true,
+	"deno.unstable": false,
+	"editor.formatOnPaste": true,
+	"editor.formatOnSave": true,
+	"editor.formatOnType": true,
+	"editor.foldingImportsByDefault": true,
+	"markdown.validate.enabled": true,
+	"javascript.inlayHints.functionLikeReturnTypes.enabled": false,
+	"javascript.suggest.autoImports": true,
+	"deno.suggest.imports.hosts": {
+		"https://deno.land": true
+	},
+	"editor.defaultFormatter": "denoland.vscode-deno",
+	"deno.cacheOnSave": true,
+	"deno.path": "/opt/homebrew/bin/deno" //very important
 }
