@@ -7,9 +7,9 @@ generator client {
   output          = "../generated/client"
 }
 
-generator erd {
-  provider = "prisma-erd-generator"
-}
+// generator erd {
+//   provider = "prisma-erd-generator"
+// }
 
 datasource db {
   provider = "postgresql"
@@ -17,7 +17,7 @@ datasource db {
 }
 
 model Hospital {
-  id            String   @id @unique @default(uuid())
+  id         String   @id @unique @default(uuid())
   name       String
   doctors    Doctor[]
   schedules  Schedule[]

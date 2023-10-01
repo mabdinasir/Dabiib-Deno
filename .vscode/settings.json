@@ -14,5 +14,5 @@
 	},
 	"editor.defaultFormatter": "denoland.vscode-deno",
 	"deno.cacheOnSave": true,
-	"deno.path": "/opt/homebrew/bin/deno" //very important
+	"deno.path": "/opt/homebrew/bin/deno"
 }
