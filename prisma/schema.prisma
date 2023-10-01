@@ -14,5 +14,24 @@ datasource db {
 
 model Hospital {
   id            String   @id @unique @default(uuid())
-  name          String
+  name       String
+  doctors    Doctor[]
+  schedules  Schedule[]
+}
+
+model Doctor {
+  id         String   @id @unique @default(uuid())
+  name       String
+  hospitals  Hospital[]
+  schedules  Schedule[]
+}
+
+model Schedule {
+  id         String   @id @unique @default(uuid())
+  startTime  DateTime
+  endTime    DateTime
+  doctor     Doctor    @relation(fields: [doctorId], references: [id])
+  doctorId   String
+  hospital   Hospital  @relation(fields: [hospitalId], references: [id])
+  hospitalId String
 }

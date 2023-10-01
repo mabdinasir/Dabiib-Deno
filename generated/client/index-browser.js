@@ -17,11 +17,11 @@ exports.$Enums = {}
 
 /**
  * Prisma Client JS version: 5.3.1
- * Query Engine version: d9a4c5988f480fa576d43970d5a23641aa77bc9c
+ * Query Engine version: 61e140623197a131c2a6189271ffee05a7aa9a59
  */
 Prisma.prismaVersion = {
   client: "5.3.1",
-  engine: "d9a4c5988f480fa576d43970d5a23641aa77bc9c"
+  engine: "61e140623197a131c2a6189271ffee05a7aa9a59"
 }
 
 Prisma.PrismaClientKnownRequestError = () => {
@@ -100,21 +100,6 @@ Prisma.NullTypes = {
  * Enums
  */
 
-exports.Prisma.HospitalScalarFieldEnum = {
-  id: 'id',
-  name: 'name'
-};
-
-exports.Prisma.QueryMode = {
-  default: 'default',
-  insensitive: 'insensitive'
-};
-
-exports.Prisma.SortOrder = {
-  asc: 'asc',
-  desc: 'desc'
-};
-
 exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
   ReadUncommitted: 'ReadUncommitted',
   ReadCommitted: 'ReadCommitted',
@@ -122,9 +107,39 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
   Serializable: 'Serializable'
 });
 
+exports.Prisma.HospitalScalarFieldEnum = {
+  id: 'id',
+  name: 'name'
+};
+
+exports.Prisma.DoctorScalarFieldEnum = {
+  id: 'id',
+  name: 'name'
+};
+
+exports.Prisma.ScheduleScalarFieldEnum = {
+  id: 'id',
+  startTime: 'startTime',
+  endTime: 'endTime',
+  doctorId: 'doctorId',
+  hospitalId: 'hospitalId'
+};
+
+exports.Prisma.SortOrder = {
+  asc: 'asc',
+  desc: 'desc'
+};
+
+exports.Prisma.QueryMode = {
+  default: 'default',
+  insensitive: 'insensitive'
+};
+
 
 exports.Prisma.ModelName = {
-  Hospital: 'Hospital'
+  Hospital: 'Hospital',
+  Doctor: 'Doctor',
+  Schedule: 'Schedule'
 };
 
 /**
