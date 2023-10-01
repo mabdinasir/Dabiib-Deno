@@ -1,0 +1,4 @@
+{
+  "deno.cacheOnSave": true,
+  "deno.enable": true
+}
