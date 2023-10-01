@@ -1,6 +1,7 @@
 {
 	"dependencies": {
 		"@prisma/client": "^5.3.1",
+		"dotenv-cli": "^7.3.0",
 		"prisma-erd-generator": "^1.11.1"
 	}
 }
