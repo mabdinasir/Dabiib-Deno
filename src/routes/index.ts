@@ -1,5 +1,5 @@
-import { addHospitals } from "../controllers/apis/doctors/AddHospitals.ts";
-import { getHospitals } from "../controllers/apis/doctors/getHospitals.ts";
+import { addHospitals } from "../controllers/apis/hospitals/AddHospitals.ts";
+import { getHospitals } from "../controllers/apis/hospitals/getHospitals.ts";
 import { Router } from "../deps.ts";
 
 const router = new Router();

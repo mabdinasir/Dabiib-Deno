@@ -33,7 +33,7 @@ const addHospitals = async (ctx: Context) => {
 			ctx.response.body = {
 				success: false,
 				message:
-					"Hospital(s) with the same name already exist. Please provide unique Hospital(s)!",
+					"Hospital(s) with the same name(s) already exist(s). Please provide unique Hospital name(s)!",
 			};
 			return;
 		}
