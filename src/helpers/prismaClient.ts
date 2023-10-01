@@ -1,11 +1,12 @@
 import "https://deno.land/std@0.173.0/dotenv/load.ts";
 import { PrismaClient } from "../deps.ts";
 
+const DATABASE_URL = Deno.env.get("DATABASE_URL") as string;
 
 const prisma = new PrismaClient({
 	datasources: {
 		db: {
-			url: "prisma://aws-us-east-1.prisma-data.com/?api_key=jh1Od7b2reIwpdb1XGXaCwykg2GlXGzp9CQn53GnKBnf8T3MmRQys9MnUQ7qXi4Q",
+			url: DATABASE_URL,
 		},
 	},
 });
