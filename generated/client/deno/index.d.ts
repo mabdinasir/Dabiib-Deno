@@ -3,45 +3,31 @@
  * Client
 **/
 
-import * as runtime from '.././runtime/index.d.ts';
-type UnwrapPromise<P extends any> = P extends Promise<infer R> ? R : P
-type UnwrapTuple<Tuple extends readonly unknown[]> = {
-  [K in keyof Tuple]: K extends `${number}` ? Tuple[K] extends Prisma.PrismaPromise<infer X> ? X : UnwrapPromise<Tuple[K]> : UnwrapPromise<Tuple[K]>
-};
+import * as runtime from '.././runtime/library.d.ts';
+import $Types = runtime.Types // general types
+import $Public = runtime.Types.Public
+import $Utils = runtime.Types.Utils
+import $Extensions = runtime.Types.Extensions
+import $Result = runtime.Types.Result
 
-export type PrismaPromise<T> = runtime.Types.Public.PrismaPromise<T>
+export type PrismaPromise<T> = $Public.PrismaPromise<T>
 
 
 /**
  * Model Hospital
  * 
  */
-export type Hospital = {
-  id: string
-  name: string
-}
-
+export type Hospital = $Result.DefaultSelection<Prisma.$HospitalPayload>
 /**
  * Model Doctor
  * 
  */
-export type Doctor = {
-  id: string
-  name: string
-}
-
+export type Doctor = $Result.DefaultSelection<Prisma.$DoctorPayload>
 /**
  * Model Schedule
  * 
  */
-export type Schedule = {
-  id: string
-  startTime: Date
-  endTime: Date
-  doctorId: string
-  hospitalId: string
-}
-
+export type Schedule = $Result.DefaultSelection<Prisma.$SchedulePayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -60,10 +46,10 @@ export type Schedule = {
 export class PrismaClient<
   T extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
   U = 'log' extends keyof T ? T['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<T['log']> : never : never,
-  GlobalReject extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined = 'rejectOnNotFound' extends keyof T
-    ? T['rejectOnNotFound']
-    : false
-      > {
+  ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs
+> {
+  [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['other'] }
+
     /**
    * ##  Prisma Client ʲˢ
    * 
@@ -80,20 +66,22 @@ export class PrismaClient<
    */
 
   constructor(optionsArg ?: Prisma.Subset<T, Prisma.PrismaClientOptions>);
-  $on<V extends (U | 'beforeExit')>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : V extends 'beforeExit' ? () => Promise<void> : Prisma.LogEvent) => void): void;
+  $on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): void;
 
   /**
    * Connect with the database
    */
-  $connect(): Promise<void>;
+  $connect(): $Utils.JsPromise<void>;
 
   /**
    * Disconnect from the database
    */
-  $disconnect(): Promise<void>;
+  $disconnect(): $Utils.JsPromise<void>;
 
   /**
    * Add a middleware
+   * @deprecated since 4.16.0. For new code, prefer client extensions instead.
+   * @see https://pris.ly/d/extensions
    */
   $use(cb: Prisma.Middleware): void
 
@@ -156,9 +144,12 @@ export class PrismaClient<
    * 
    * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client/transactions).
    */
-  $transaction<P extends Prisma.PrismaPromise<any>[]>(arg: [...P], options?: { isolationLevel?: Prisma.TransactionIsolationLevel }): Promise<UnwrapTuple<P>>
+  $transaction<P extends Prisma.PrismaPromise<any>[]>(arg: [...P], options?: { isolationLevel?: Prisma.TransactionIsolationLevel }): $Utils.JsPromise<runtime.Types.Utils.UnwrapTuple<P>>
 
-  $transaction<R>(fn: (prisma: Omit<this, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use">) => Promise<R>, options?: { maxWait?: number, timeout?: number, isolationLevel?: Prisma.TransactionIsolationLevel }): Promise<R>
+  $transaction<R>(fn: (prisma: Omit<PrismaClient, runtime.ITXClientDenyList>) => $Utils.JsPromise<R>, options?: { maxWait?: number, timeout?: number, isolationLevel?: Prisma.TransactionIsolationLevel }): $Utils.JsPromise<R>
+
+
+  $extends: $Extensions.ExtendsHook<'extends', Prisma.TypeMapCb, ExtArgs>
 
       /**
    * `prisma.hospital`: Exposes CRUD operations for the **Hospital** model.
@@ -168,7 +159,7 @@ export class PrismaClient<
     * const hospitals = await prisma.hospital.findMany()
     * ```
     */
-  get hospital(): Prisma.HospitalDelegate<GlobalReject>;
+  get hospital(): Prisma.HospitalDelegate<ExtArgs>;
 
   /**
    * `prisma.doctor`: Exposes CRUD operations for the **Doctor** model.
@@ -178,7 +169,7 @@ export class PrismaClient<
     * const doctors = await prisma.doctor.findMany()
     * ```
     */
-  get doctor(): Prisma.DoctorDelegate<GlobalReject>;
+  get doctor(): Prisma.DoctorDelegate<ExtArgs>;
 
   /**
    * `prisma.schedule`: Exposes CRUD operations for the **Schedule** model.
@@ -188,13 +179,18 @@ export class PrismaClient<
     * const schedules = await prisma.schedule.findMany()
     * ```
     */
-  get schedule(): Prisma.ScheduleDelegate<GlobalReject>;
+  get schedule(): Prisma.ScheduleDelegate<ExtArgs>;
 }
 
 export namespace Prisma {
   export import DMMF = runtime.DMMF
 
-  export type PrismaPromise<T> = runtime.Types.Public.PrismaPromise<T>
+  export type PrismaPromise<T> = $Public.PrismaPromise<T>
+
+  /**
+   * Validator
+   */
+  export import validator = runtime.Public.validator
 
   /**
    * Prisma Errors
@@ -230,10 +226,19 @@ export namespace Prisma {
   export type MetricHistogram = runtime.MetricHistogram
   export type MetricHistogramBucket = runtime.MetricHistogramBucket
 
+  /**
+  * Extensions
+  */
+  export import Extension = $Extensions.UserArgs
+  export import getExtensionContext = runtime.Extensions.getExtensionContext
+  export import Args = $Public.Args
+  export import Payload = $Public.Payload
+  export import Result = $Public.Result
+  export import Exact = $Public.Exact
 
   /**
-   * Prisma Client JS version: 4.14.0
-   * Query Engine version: d9a4c5988f480fa576d43970d5a23641aa77bc9c
+   * Prisma Client JS version: 5.3.1
+   * Query Engine version: 61e140623197a131c2a6189271ffee05a7aa9a59
    */
   export type PrismaVersion = {
     client: string
@@ -289,7 +294,7 @@ export namespace Prisma {
    *
    * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-by-null-values
    */
-  export type InputJsonValue = string | number | boolean | InputJsonObject | InputJsonArray
+  export type InputJsonValue = string | number | boolean | InputJsonObject | InputJsonArray | { toJSON(): unknown }
 
   /**
    * Types of the values used to represent different kinds of `null` values when working with JSON fields.
@@ -359,19 +364,6 @@ export namespace Prisma {
     select: any
     include: any
   }
-  type HasSelect = {
-    select: any
-  }
-  type HasInclude = {
-    include: any
-  }
-  type CheckSelect<T, S, U> = T extends SelectAndInclude
-    ? 'Please either choose `select` or `include`'
-    : T extends HasSelect
-    ? U
-    : T extends HasInclude
-    ? U
-    : S
 
   /**
    * Get the type of the value, that the Promise holds.
@@ -381,7 +373,7 @@ export namespace Prisma {
   /**
    * Get the return type of a function which returns a Promise.
    */
-  export type PromiseReturnType<T extends (...args: any) => Promise<any>> = PromiseType<ReturnType<T>>
+  export type PromiseReturnType<T extends (...args: any) => $Utils.JsPromise<any>> = PromiseType<ReturnType<T>>
 
   /**
    * From T, pick a set of properties whose keys are in the union K
@@ -601,7 +593,7 @@ export namespace Prisma {
 
   export const type: unique symbol;
 
-  export function validator<V>(): <S>(select: runtime.Types.Utils.LegacyExact<S, V>) => S;
+
 
   /**
    * Used by group by
@@ -642,9 +634,9 @@ export namespace Prisma {
   type MaybeTupleToUnion<T> = T extends any[] ? TupleToUnion<T> : T
 
   /**
-   * Like `Pick`, but with an array
+   * Like `Pick`, but additionally can also accept an array of keys
    */
-  type PickArray<T, K extends Array<keyof T>> = Prisma__Pick<T, TupleToUnion<K>>
+  type PickEnumerable<T, K extends Enumerable<keyof T> | keyof T> = Prisma__Pick<T, MaybeTupleToUnion<K>>
 
   /**
    * Exclude all keys with underscores
@@ -670,50 +662,253 @@ export namespace Prisma {
     db?: Datasource
   }
 
+
+  interface TypeMapCb extends $Utils.Fn<{extArgs: $Extensions.Args}, $Utils.Record<string, any>> {
+    returns: Prisma.TypeMap<this['params']['extArgs']>
+  }
+
+  export type TypeMap<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+    meta: {
+      modelProps: 'hospital' | 'doctor' | 'schedule'
+      txIsolationLevel: Prisma.TransactionIsolationLevel
+    },
+    model: {
+      Hospital: {
+        payload: Prisma.$HospitalPayload<ExtArgs>
+        fields: Prisma.HospitalFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.HospitalFindUniqueArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$HospitalPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.HospitalFindUniqueOrThrowArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$HospitalPayload>
+          }
+          findFirst: {
+            args: Prisma.HospitalFindFirstArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$HospitalPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.HospitalFindFirstOrThrowArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$HospitalPayload>
+          }
+          findMany: {
+            args: Prisma.HospitalFindManyArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$HospitalPayload>[]
+          }
+          create: {
+            args: Prisma.HospitalCreateArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$HospitalPayload>
+          }
+          createMany: {
+            args: Prisma.HospitalCreateManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          delete: {
+            args: Prisma.HospitalDeleteArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$HospitalPayload>
+          }
+          update: {
+            args: Prisma.HospitalUpdateArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$HospitalPayload>
+          }
+          deleteMany: {
+            args: Prisma.HospitalDeleteManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          updateMany: {
+            args: Prisma.HospitalUpdateManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          upsert: {
+            args: Prisma.HospitalUpsertArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$HospitalPayload>
+          }
+          aggregate: {
+            args: Prisma.HospitalAggregateArgs<ExtArgs>,
+            result: $Utils.Optional<AggregateHospital>
+          }
+          groupBy: {
+            args: Prisma.HospitalGroupByArgs<ExtArgs>,
+            result: $Utils.Optional<HospitalGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.HospitalCountArgs<ExtArgs>,
+            result: $Utils.Optional<HospitalCountAggregateOutputType> | number
+          }
+        }
+      }
+      Doctor: {
+        payload: Prisma.$DoctorPayload<ExtArgs>
+        fields: Prisma.DoctorFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.DoctorFindUniqueArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$DoctorPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.DoctorFindUniqueOrThrowArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$DoctorPayload>
+          }
+          findFirst: {
+            args: Prisma.DoctorFindFirstArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$DoctorPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.DoctorFindFirstOrThrowArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$DoctorPayload>
+          }
+          findMany: {
+            args: Prisma.DoctorFindManyArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$DoctorPayload>[]
+          }
+          create: {
+            args: Prisma.DoctorCreateArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$DoctorPayload>
+          }
+          createMany: {
+            args: Prisma.DoctorCreateManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          delete: {
+            args: Prisma.DoctorDeleteArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$DoctorPayload>
+          }
+          update: {
+            args: Prisma.DoctorUpdateArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$DoctorPayload>
+          }
+          deleteMany: {
+            args: Prisma.DoctorDeleteManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          updateMany: {
+            args: Prisma.DoctorUpdateManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          upsert: {
+            args: Prisma.DoctorUpsertArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$DoctorPayload>
+          }
+          aggregate: {
+            args: Prisma.DoctorAggregateArgs<ExtArgs>,
+            result: $Utils.Optional<AggregateDoctor>
+          }
+          groupBy: {
+            args: Prisma.DoctorGroupByArgs<ExtArgs>,
+            result: $Utils.Optional<DoctorGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.DoctorCountArgs<ExtArgs>,
+            result: $Utils.Optional<DoctorCountAggregateOutputType> | number
+          }
+        }
+      }
+      Schedule: {
+        payload: Prisma.$SchedulePayload<ExtArgs>
+        fields: Prisma.ScheduleFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ScheduleFindUniqueArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$SchedulePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ScheduleFindUniqueOrThrowArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$SchedulePayload>
+          }
+          findFirst: {
+            args: Prisma.ScheduleFindFirstArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$SchedulePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ScheduleFindFirstOrThrowArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$SchedulePayload>
+          }
+          findMany: {
+            args: Prisma.ScheduleFindManyArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$SchedulePayload>[]
+          }
+          create: {
+            args: Prisma.ScheduleCreateArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$SchedulePayload>
+          }
+          createMany: {
+            args: Prisma.ScheduleCreateManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          delete: {
+            args: Prisma.ScheduleDeleteArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$SchedulePayload>
+          }
+          update: {
+            args: Prisma.ScheduleUpdateArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$SchedulePayload>
+          }
+          deleteMany: {
+            args: Prisma.ScheduleDeleteManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ScheduleUpdateManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          upsert: {
+            args: Prisma.ScheduleUpsertArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<Prisma.$SchedulePayload>
+          }
+          aggregate: {
+            args: Prisma.ScheduleAggregateArgs<ExtArgs>,
+            result: $Utils.Optional<AggregateSchedule>
+          }
+          groupBy: {
+            args: Prisma.ScheduleGroupByArgs<ExtArgs>,
+            result: $Utils.Optional<ScheduleGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ScheduleCountArgs<ExtArgs>,
+            result: $Utils.Optional<ScheduleCountAggregateOutputType> | number
+          }
+        }
+      }
+    }
+  } & {
+    other: {
+      payload: any
+      operations: {
+        $executeRawUnsafe: {
+          args: [query: string, ...values: any[]],
+          result: any
+        }
+        $executeRaw: {
+          args: [query: TemplateStringsArray | Prisma.Sql, ...values: any[]],
+          result: any
+        }
+        $queryRawUnsafe: {
+          args: [query: string, ...values: any[]],
+          result: any
+        }
+        $queryRaw: {
+          args: [query: TemplateStringsArray | Prisma.Sql, ...values: any[]],
+          result: any
+        }
+      }
+    }
+  }
+  export const defineExtension: $Extensions.ExtendsHook<'define', Prisma.TypeMapCb, $Extensions.DefaultArgs>
   export type DefaultPrismaClient = PrismaClient
-  export type RejectOnNotFound = boolean | ((error: Error) => Error)
-  export type RejectPerModel = { [P in ModelName]?: RejectOnNotFound }
-  export type RejectPerOperation =  { [P in "findUnique" | "findFirst"]?: RejectPerModel | RejectOnNotFound } 
-  type IsReject<T> = T extends true ? True : T extends (err: Error) => Error ? True : False
-  export type HasReject<
-    GlobalRejectSettings extends Prisma.PrismaClientOptions['rejectOnNotFound'],
-    LocalRejectSettings,
-    Action extends PrismaAction,
-    Model extends ModelName
-  > = LocalRejectSettings extends RejectOnNotFound
-    ? IsReject<LocalRejectSettings>
-    : GlobalRejectSettings extends RejectPerOperation
-    ? Action extends keyof GlobalRejectSettings
-      ? GlobalRejectSettings[Action] extends RejectOnNotFound
-        ? IsReject<GlobalRejectSettings[Action]>
-        : GlobalRejectSettings[Action] extends RejectPerModel
-        ? Model extends keyof GlobalRejectSettings[Action]
-          ? IsReject<GlobalRejectSettings[Action][Model]>
-          : False
-        : False
-      : False
-    : IsReject<GlobalRejectSettings>
   export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
   export interface PrismaClientOptions {
     /**
-     * Configure findUnique/findFirst to throw an error if the query returns null. 
-     * @deprecated since 4.0.0. Use `findUniqueOrThrow`/`findFirstOrThrow` methods instead.
-     * @example
-     * ```
-     * // Reject on both findUnique/findFirst
-     * rejectOnNotFound: true
-     * // Reject only on findFirst with a custom error
-     * rejectOnNotFound: { findFirst: (err) => new Error("Custom Error")}
-     * // Reject on user.findUnique with a custom error
-     * rejectOnNotFound: { findUnique: {User: (err) => new Error("User not found")}}
-     * ```
-     */
-    rejectOnNotFound?: RejectOnNotFound | RejectPerOperation
-    /**
      * Overwrites the datasource url from your schema.prisma file
      */
     datasources?: Datasources
+
+    /**
+     * Overwrites the datasource url from your schema.prisma file
+     */
+    datasourceUrl?: string
 
     /**
      * @default "colorless"
@@ -769,8 +964,10 @@ export namespace Prisma {
 
   export type PrismaAction =
     | 'findUnique'
+    | 'findUniqueOrThrow'
     | 'findMany'
     | 'findFirst'
+    | 'findFirstOrThrow'
     | 'create'
     | 'createMany'
     | 'update'
@@ -784,6 +981,7 @@ export namespace Prisma {
     | 'count'
     | 'runCommandRaw'
     | 'findRaw'
+    | 'groupBy'
 
   /**
    * These options are being passed into the middleware as "params"
@@ -801,8 +999,8 @@ export namespace Prisma {
    */
   export type Middleware<T = any> = (
     params: MiddlewareParams,
-    next: (params: MiddlewareParams) => Promise<T>,
-  ) => Promise<T>
+    next: (params: MiddlewareParams) => $Utils.JsPromise<T>,
+  ) => $Utils.JsPromise<T>
 
   // tested in getLogLevel.test.ts
   export function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | undefined;
@@ -810,7 +1008,7 @@ export namespace Prisma {
   /**
    * `PrismaClient` proxy available in interactive transactions.
    */
-  export type TransactionClient = Omit<Prisma.DefaultPrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use'>
+  export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClientDenyList>
 
   export type Datasource = {
     url?: string
@@ -825,43 +1023,42 @@ export namespace Prisma {
    * Count Type HospitalCountOutputType
    */
 
-
   export type HospitalCountOutputType = {
     doctors: number
     schedules: number
   }
 
-  export type HospitalCountOutputTypeSelect = {
-    doctors?: boolean
-    schedules?: boolean
+  export type HospitalCountOutputTypeSelect<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+    doctors?: boolean | HospitalCountOutputTypeCountDoctorsArgs
+    schedules?: boolean | HospitalCountOutputTypeCountSchedulesArgs
   }
-
-  export type HospitalCountOutputTypeGetPayload<S extends boolean | null | undefined | HospitalCountOutputTypeArgs> =
-    S extends { select: any, include: any } ? 'Please either choose `select` or `include`' :
-    S extends true ? HospitalCountOutputType :
-    S extends undefined ? never :
-    S extends { include: any } & (HospitalCountOutputTypeArgs)
-    ? HospitalCountOutputType 
-    : S extends { select: any } & (HospitalCountOutputTypeArgs)
-      ? {
-    [P in TruthyKeys<S['select']>]:
-    P extends keyof HospitalCountOutputType ? HospitalCountOutputType[P] : never
-  } 
-      : HospitalCountOutputType
-
-
-
 
   // Custom InputTypes
 
   /**
    * HospitalCountOutputType without action
    */
-  export type HospitalCountOutputTypeArgs = {
+  export type HospitalCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the HospitalCountOutputType
      */
-    select?: HospitalCountOutputTypeSelect | null
+    select?: HospitalCountOutputTypeSelect<ExtArgs> | null
+  }
+
+
+  /**
+   * HospitalCountOutputType without action
+   */
+  export type HospitalCountOutputTypeCountDoctorsArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+    where?: DoctorWhereInput
+  }
+
+
+  /**
+   * HospitalCountOutputType without action
+   */
+  export type HospitalCountOutputTypeCountSchedulesArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+    where?: ScheduleWhereInput
   }
 
 
@@ -870,43 +1067,42 @@ export namespace Prisma {
    * Count Type DoctorCountOutputType
    */
 
-
   export type DoctorCountOutputType = {
     hospitals: number
     schedules: number
   }
 
-  export type DoctorCountOutputTypeSelect = {
-    hospitals?: boolean
-    schedules?: boolean
+  export type DoctorCountOutputTypeSelect<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+    hospitals?: boolean | DoctorCountOutputTypeCountHospitalsArgs
+    schedules?: boolean | DoctorCountOutputTypeCountSchedulesArgs
   }
-
-  export type DoctorCountOutputTypeGetPayload<S extends boolean | null | undefined | DoctorCountOutputTypeArgs> =
-    S extends { select: any, include: any } ? 'Please either choose `select` or `include`' :
-    S extends true ? DoctorCountOutputType :
-    S extends undefined ? never :
-    S extends { include: any } & (DoctorCountOutputTypeArgs)
-    ? DoctorCountOutputType 
-    : S extends { select: any } & (DoctorCountOutputTypeArgs)
-      ? {
-    [P in TruthyKeys<S['select']>]:
-    P extends keyof DoctorCountOutputType ? DoctorCountOutputType[P] : never
-  } 
-      : DoctorCountOutputType
-
-
-
 
   // Custom InputTypes
 
   /**
    * DoctorCountOutputType without action
    */
-  export type DoctorCountOutputTypeArgs = {
+  export type DoctorCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the DoctorCountOutputType
      */
-    select?: DoctorCountOutputTypeSelect | null
+    select?: DoctorCountOutputTypeSelect<ExtArgs> | null
+  }
+
+
+  /**
+   * DoctorCountOutputType without action
+   */
+  export type DoctorCountOutputTypeCountHospitalsArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+    where?: HospitalWhereInput
+  }
+
+
+  /**
+   * DoctorCountOutputType without action
+   */
+  export type DoctorCountOutputTypeCountSchedulesArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+    where?: ScheduleWhereInput
   }
 
 
@@ -918,7 +1114,6 @@ export namespace Prisma {
   /**
    * Model Hospital
    */
-
 
   export type AggregateHospital = {
     _count: HospitalCountAggregateOutputType | null
@@ -959,7 +1154,7 @@ export namespace Prisma {
     _all?: true
   }
 
-  export type HospitalAggregateArgs = {
+  export type HospitalAggregateArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Filter which Hospital to aggregate.
      */
@@ -969,7 +1164,7 @@ export namespace Prisma {
      * 
      * Determine the order of Hospitals to fetch.
      */
-    orderBy?: Enumerable<HospitalOrderByWithRelationInput>
+    orderBy?: HospitalOrderByWithRelationInput | HospitalOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -1019,10 +1214,10 @@ export namespace Prisma {
 
 
 
-  export type HospitalGroupByArgs = {
+  export type HospitalGroupByArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     where?: HospitalWhereInput
-    orderBy?: Enumerable<HospitalOrderByWithAggregationInput>
-    by: HospitalScalarFieldEnum[]
+    orderBy?: HospitalOrderByWithAggregationInput | HospitalOrderByWithAggregationInput[]
+    by: HospitalScalarFieldEnum[] | HospitalScalarFieldEnum
     having?: HospitalScalarWhereWithAggregatesInput
     take?: number
     skip?: number
@@ -1030,7 +1225,6 @@ export namespace Prisma {
     _min?: HospitalMinAggregateInputType
     _max?: HospitalMaxAggregateInputType
   }
-
 
   export type HospitalGroupByOutputType = {
     id: string
@@ -1042,7 +1236,7 @@ export namespace Prisma {
 
   type GetHospitalGroupByPayload<T extends HospitalGroupByArgs> = Prisma.PrismaPromise<
     Array<
-      PickArray<HospitalGroupByOutputType, T['by']> &
+      PickEnumerable<HospitalGroupByOutputType, T['by']> &
         {
           [P in ((keyof T) & (keyof HospitalGroupByOutputType))]: P extends '_count'
             ? T[P] extends boolean
@@ -1054,49 +1248,49 @@ export namespace Prisma {
     >
 
 
-  export type HospitalSelect = {
+  export type HospitalSelect<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     name?: boolean
-    doctors?: boolean | Hospital$doctorsArgs
-    schedules?: boolean | Hospital$schedulesArgs
-    _count?: boolean | HospitalCountOutputTypeArgs
+    doctors?: boolean | Hospital$doctorsArgs<ExtArgs>
+    schedules?: boolean | Hospital$schedulesArgs<ExtArgs>
+    _count?: boolean | HospitalCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["hospital"]>
+
+  export type HospitalSelectScalar = {
+    id?: boolean
+    name?: boolean
+  }
+
+  export type HospitalInclude<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+    doctors?: boolean | Hospital$doctorsArgs<ExtArgs>
+    schedules?: boolean | Hospital$schedulesArgs<ExtArgs>
+    _count?: boolean | HospitalCountOutputTypeDefaultArgs<ExtArgs>
   }
 
 
-  export type HospitalInclude = {
-    doctors?: boolean | Hospital$doctorsArgs
-    schedules?: boolean | Hospital$schedulesArgs
-    _count?: boolean | HospitalCountOutputTypeArgs
+  export type $HospitalPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+    name: "Hospital"
+    objects: {
+      doctors: Prisma.$DoctorPayload<ExtArgs>[]
+      schedules: Prisma.$SchedulePayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetResult<{
+      id: string
+      name: string
+    }, ExtArgs["result"]["hospital"]>
+    composites: {}
   }
 
-  export type HospitalGetPayload<S extends boolean | null | undefined | HospitalArgs> =
-    S extends { select: any, include: any } ? 'Please either choose `select` or `include`' :
-    S extends true ? Hospital :
-    S extends undefined ? never :
-    S extends { include: any } & (HospitalArgs | HospitalFindManyArgs)
-    ? Hospital  & {
-    [P in TruthyKeys<S['include']>]:
-        P extends 'doctors' ? Array < DoctorGetPayload<S['include'][P]>>  :
-        P extends 'schedules' ? Array < ScheduleGetPayload<S['include'][P]>>  :
-        P extends '_count' ? HospitalCountOutputTypeGetPayload<S['include'][P]> :  never
-  } 
-    : S extends { select: any } & (HospitalArgs | HospitalFindManyArgs)
-      ? {
-    [P in TruthyKeys<S['select']>]:
-        P extends 'doctors' ? Array < DoctorGetPayload<S['select'][P]>>  :
-        P extends 'schedules' ? Array < ScheduleGetPayload<S['select'][P]>>  :
-        P extends '_count' ? HospitalCountOutputTypeGetPayload<S['select'][P]> :  P extends keyof Hospital ? Hospital[P] : never
-  } 
-      : Hospital
 
+  type HospitalGetPayload<S extends boolean | null | undefined | HospitalDefaultArgs> = $Result.GetResult<Prisma.$HospitalPayload, S>
 
-  type HospitalCountArgs = 
+  type HospitalCountArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = 
     Omit<HospitalFindManyArgs, 'select' | 'include'> & {
       select?: HospitalCountAggregateInputType | true
     }
 
-  export interface HospitalDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
-
+  export interface HospitalDelegate<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Hospital'], meta: { name: 'Hospital' } }
     /**
      * Find zero or one Hospital that matches the filter.
      * @param {HospitalFindUniqueArgs} args - Arguments to find a Hospital
@@ -1108,9 +1302,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends HospitalFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
-      args: SelectSubset<T, HospitalFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'Hospital'> extends True ? Prisma__HospitalClient<HospitalGetPayload<T>> : Prisma__HospitalClient<HospitalGetPayload<T> | null, null>
+    findUnique<T extends HospitalFindUniqueArgs<ExtArgs>>(
+      args: SelectSubset<T, HospitalFindUniqueArgs<ExtArgs>>
+    ): Prisma__HospitalClient<$Result.GetResult<Prisma.$HospitalPayload<ExtArgs>, T, 'findUnique'> | null, null, ExtArgs>
 
     /**
      * Find one Hospital that matches the filter or throw an error  with `error.code='P2025'` 
@@ -1124,9 +1318,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUniqueOrThrow<T extends HospitalFindUniqueOrThrowArgs>(
-      args?: SelectSubset<T, HospitalFindUniqueOrThrowArgs>
-    ): Prisma__HospitalClient<HospitalGetPayload<T>>
+    findUniqueOrThrow<T extends HospitalFindUniqueOrThrowArgs<ExtArgs>>(
+      args?: SelectSubset<T, HospitalFindUniqueOrThrowArgs<ExtArgs>>
+    ): Prisma__HospitalClient<$Result.GetResult<Prisma.$HospitalPayload<ExtArgs>, T, 'findUniqueOrThrow'>, never, ExtArgs>
 
     /**
      * Find the first Hospital that matches the filter.
@@ -1141,13 +1335,13 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findFirst<T extends HospitalFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
-      args?: SelectSubset<T, HospitalFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'Hospital'> extends True ? Prisma__HospitalClient<HospitalGetPayload<T>> : Prisma__HospitalClient<HospitalGetPayload<T> | null, null>
+    findFirst<T extends HospitalFindFirstArgs<ExtArgs>>(
+      args?: SelectSubset<T, HospitalFindFirstArgs<ExtArgs>>
+    ): Prisma__HospitalClient<$Result.GetResult<Prisma.$HospitalPayload<ExtArgs>, T, 'findFirst'> | null, null, ExtArgs>
 
     /**
      * Find the first Hospital that matches the filter or
-     * throw `NotFoundError` if no matches were found.
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
      * @param {HospitalFindFirstOrThrowArgs} args - Arguments to find a Hospital
@@ -1159,9 +1353,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findFirstOrThrow<T extends HospitalFindFirstOrThrowArgs>(
-      args?: SelectSubset<T, HospitalFindFirstOrThrowArgs>
-    ): Prisma__HospitalClient<HospitalGetPayload<T>>
+    findFirstOrThrow<T extends HospitalFindFirstOrThrowArgs<ExtArgs>>(
+      args?: SelectSubset<T, HospitalFindFirstOrThrowArgs<ExtArgs>>
+    ): Prisma__HospitalClient<$Result.GetResult<Prisma.$HospitalPayload<ExtArgs>, T, 'findFirstOrThrow'>, never, ExtArgs>
 
     /**
      * Find zero or more Hospitals that matches the filter.
@@ -1179,9 +1373,9 @@ export namespace Prisma {
      * const hospitalWithIdOnly = await prisma.hospital.findMany({ select: { id: true } })
      * 
     **/
-    findMany<T extends HospitalFindManyArgs>(
-      args?: SelectSubset<T, HospitalFindManyArgs>
-    ): Prisma.PrismaPromise<Array<HospitalGetPayload<T>>>
+    findMany<T extends HospitalFindManyArgs<ExtArgs>>(
+      args?: SelectSubset<T, HospitalFindManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<$Result.GetResult<Prisma.$HospitalPayload<ExtArgs>, T, 'findMany'>>
 
     /**
      * Create a Hospital.
@@ -1195,9 +1389,9 @@ export namespace Prisma {
      * })
      * 
     **/
-    create<T extends HospitalCreateArgs>(
-      args: SelectSubset<T, HospitalCreateArgs>
-    ): Prisma__HospitalClient<HospitalGetPayload<T>>
+    create<T extends HospitalCreateArgs<ExtArgs>>(
+      args: SelectSubset<T, HospitalCreateArgs<ExtArgs>>
+    ): Prisma__HospitalClient<$Result.GetResult<Prisma.$HospitalPayload<ExtArgs>, T, 'create'>, never, ExtArgs>
 
     /**
      * Create many Hospitals.
@@ -1211,8 +1405,8 @@ export namespace Prisma {
      *     })
      *     
     **/
-    createMany<T extends HospitalCreateManyArgs>(
-      args?: SelectSubset<T, HospitalCreateManyArgs>
+    createMany<T extends HospitalCreateManyArgs<ExtArgs>>(
+      args?: SelectSubset<T, HospitalCreateManyArgs<ExtArgs>>
     ): Prisma.PrismaPromise<BatchPayload>
 
     /**
@@ -1227,9 +1421,9 @@ export namespace Prisma {
      * })
      * 
     **/
-    delete<T extends HospitalDeleteArgs>(
-      args: SelectSubset<T, HospitalDeleteArgs>
-    ): Prisma__HospitalClient<HospitalGetPayload<T>>
+    delete<T extends HospitalDeleteArgs<ExtArgs>>(
+      args: SelectSubset<T, HospitalDeleteArgs<ExtArgs>>
+    ): Prisma__HospitalClient<$Result.GetResult<Prisma.$HospitalPayload<ExtArgs>, T, 'delete'>, never, ExtArgs>
 
     /**
      * Update one Hospital.
@@ -1246,9 +1440,9 @@ export namespace Prisma {
      * })
      * 
     **/
-    update<T extends HospitalUpdateArgs>(
-      args: SelectSubset<T, HospitalUpdateArgs>
-    ): Prisma__HospitalClient<HospitalGetPayload<T>>
+    update<T extends HospitalUpdateArgs<ExtArgs>>(
+      args: SelectSubset<T, HospitalUpdateArgs<ExtArgs>>
+    ): Prisma__HospitalClient<$Result.GetResult<Prisma.$HospitalPayload<ExtArgs>, T, 'update'>, never, ExtArgs>
 
     /**
      * Delete zero or more Hospitals.
@@ -1262,8 +1456,8 @@ export namespace Prisma {
      * })
      * 
     **/
-    deleteMany<T extends HospitalDeleteManyArgs>(
-      args?: SelectSubset<T, HospitalDeleteManyArgs>
+    deleteMany<T extends HospitalDeleteManyArgs<ExtArgs>>(
+      args?: SelectSubset<T, HospitalDeleteManyArgs<ExtArgs>>
     ): Prisma.PrismaPromise<BatchPayload>
 
     /**
@@ -1283,8 +1477,8 @@ export namespace Prisma {
      * })
      * 
     **/
-    updateMany<T extends HospitalUpdateManyArgs>(
-      args: SelectSubset<T, HospitalUpdateManyArgs>
+    updateMany<T extends HospitalUpdateManyArgs<ExtArgs>>(
+      args: SelectSubset<T, HospitalUpdateManyArgs<ExtArgs>>
     ): Prisma.PrismaPromise<BatchPayload>
 
     /**
@@ -1304,9 +1498,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    upsert<T extends HospitalUpsertArgs>(
-      args: SelectSubset<T, HospitalUpsertArgs>
-    ): Prisma__HospitalClient<HospitalGetPayload<T>>
+    upsert<T extends HospitalUpsertArgs<ExtArgs>>(
+      args: SelectSubset<T, HospitalUpsertArgs<ExtArgs>>
+    ): Prisma__HospitalClient<$Result.GetResult<Prisma.$HospitalPayload<ExtArgs>, T, 'upsert'>, never, ExtArgs>
 
     /**
      * Count the number of Hospitals.
@@ -1324,7 +1518,7 @@ export namespace Prisma {
     count<T extends HospitalCountArgs>(
       args?: Subset<T, HospitalCountArgs>,
     ): Prisma.PrismaPromise<
-      T extends _Record<'select', any>
+      T extends $Utils.Record<'select', any>
         ? T['select'] extends true
           ? number
           : GetScalarType<T['select'], HospitalCountAggregateOutputType>
@@ -1385,7 +1579,7 @@ export namespace Prisma {
         ? { orderBy: HospitalGroupByArgs['orderBy'] }
         : { orderBy?: HospitalGroupByArgs['orderBy'] },
       OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
-      ByFields extends TupleToUnion<T['by']>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
       HavingFields extends GetHavingFields<T['having']>,
       HavingValid extends Has<ByFields, HavingFields>,
@@ -1433,7 +1627,10 @@ export namespace Prisma {
             : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
         }[OrderFields]
     >(args: SubsetIntersection<T, HospitalGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetHospitalGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
-
+  /**
+   * Fields of the Hospital model
+   */
+  readonly fields: HospitalFieldRefs;
   }
 
   /**
@@ -1442,94 +1639,79 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export class Prisma__HospitalClient<T, Null = never> implements Prisma.PrismaPromise<T> {
-    private readonly _dmmf;
-    private readonly _queryType;
-    private readonly _rootField;
-    private readonly _clientMethod;
-    private readonly _args;
-    private readonly _dataPath;
-    private readonly _errorFormat;
-    private readonly _measurePerformance?;
-    private _isList;
-    private _callsite;
-    private _requestPromise?;
+  export interface Prisma__HospitalClient<T, Null = never, ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: 'PrismaPromise';
-    constructor(_dmmf: runtime.DMMFClass, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
 
-    doctors<T extends Hospital$doctorsArgs= {}>(args?: Subset<T, Hospital$doctorsArgs>): Prisma.PrismaPromise<Array<DoctorGetPayload<T>>| Null>;
+    doctors<T extends Hospital$doctorsArgs<ExtArgs> = {}>(args?: Subset<T, Hospital$doctorsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DoctorPayload<ExtArgs>, T, 'findMany'> | Null>;
 
-    schedules<T extends Hospital$schedulesArgs= {}>(args?: Subset<T, Hospital$schedulesArgs>): Prisma.PrismaPromise<Array<ScheduleGetPayload<T>>| Null>;
+    schedules<T extends Hospital$schedulesArgs<ExtArgs> = {}>(args?: Subset<T, Hospital$schedulesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SchedulePayload<ExtArgs>, T, 'findMany'> | Null>;
 
-    private get _document();
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of which ever callback is executed.
      */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>;
     /**
      * Attaches a callback for only the rejection of the Promise.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of the callback.
      */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): Promise<T | TResult>;
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>;
     /**
      * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
      * resolved value cannot be modified from the callback.
      * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
      * @returns A Promise for the completion of the callback.
      */
-    finally(onfinally?: (() => void) | undefined | null): Promise<T>;
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>;
   }
 
 
+
+  /**
+   * Fields of the Hospital model
+   */ 
+  interface HospitalFieldRefs {
+    readonly id: FieldRef<"Hospital", 'String'>
+    readonly name: FieldRef<"Hospital", 'String'>
+  }
+    
 
   // Custom InputTypes
 
   /**
-   * Hospital base type for findUnique actions
+   * Hospital findUnique
    */
-  export type HospitalFindUniqueArgsBase = {
+  export type HospitalFindUniqueArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Hospital
      */
-    select?: HospitalSelect | null
+    select?: HospitalSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: HospitalInclude | null
+    include?: HospitalInclude<ExtArgs> | null
     /**
      * Filter, which Hospital to fetch.
      */
     where: HospitalWhereUniqueInput
   }
 
-  /**
-   * Hospital findUnique
-   */
-  export interface HospitalFindUniqueArgs extends HospitalFindUniqueArgsBase {
-   /**
-    * Throw an Error if query returns no results
-    * @deprecated since 4.0.0: use `findUniqueOrThrow` method instead
-    */
-    rejectOnNotFound?: RejectOnNotFound
-  }
-      
 
   /**
    * Hospital findUniqueOrThrow
    */
-  export type HospitalFindUniqueOrThrowArgs = {
+  export type HospitalFindUniqueOrThrowArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Hospital
      */
-    select?: HospitalSelect | null
+    select?: HospitalSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: HospitalInclude | null
+    include?: HospitalInclude<ExtArgs> | null
     /**
      * Filter, which Hospital to fetch.
      */
@@ -1538,17 +1720,17 @@ export namespace Prisma {
 
 
   /**
-   * Hospital base type for findFirst actions
+   * Hospital findFirst
    */
-  export type HospitalFindFirstArgsBase = {
+  export type HospitalFindFirstArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Hospital
      */
-    select?: HospitalSelect | null
+    select?: HospitalSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: HospitalInclude | null
+    include?: HospitalInclude<ExtArgs> | null
     /**
      * Filter, which Hospital to fetch.
      */
@@ -1558,7 +1740,7 @@ export namespace Prisma {
      * 
      * Determine the order of Hospitals to fetch.
      */
-    orderBy?: Enumerable<HospitalOrderByWithRelationInput>
+    orderBy?: HospitalOrderByWithRelationInput | HospitalOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -1582,33 +1764,22 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of Hospitals.
      */
-    distinct?: Enumerable<HospitalScalarFieldEnum>
+    distinct?: HospitalScalarFieldEnum | HospitalScalarFieldEnum[]
   }
 
-  /**
-   * Hospital findFirst
-   */
-  export interface HospitalFindFirstArgs extends HospitalFindFirstArgsBase {
-   /**
-    * Throw an Error if query returns no results
-    * @deprecated since 4.0.0: use `findFirstOrThrow` method instead
-    */
-    rejectOnNotFound?: RejectOnNotFound
-  }
-      
 
   /**
    * Hospital findFirstOrThrow
    */
-  export type HospitalFindFirstOrThrowArgs = {
+  export type HospitalFindFirstOrThrowArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Hospital
      */
-    select?: HospitalSelect | null
+    select?: HospitalSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: HospitalInclude | null
+    include?: HospitalInclude<ExtArgs> | null
     /**
      * Filter, which Hospital to fetch.
      */
@@ -1618,7 +1789,7 @@ export namespace Prisma {
      * 
      * Determine the order of Hospitals to fetch.
      */
-    orderBy?: Enumerable<HospitalOrderByWithRelationInput>
+    orderBy?: HospitalOrderByWithRelationInput | HospitalOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -1642,22 +1813,22 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of Hospitals.
      */
-    distinct?: Enumerable<HospitalScalarFieldEnum>
+    distinct?: HospitalScalarFieldEnum | HospitalScalarFieldEnum[]
   }
 
 
   /**
    * Hospital findMany
    */
-  export type HospitalFindManyArgs = {
+  export type HospitalFindManyArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Hospital
      */
-    select?: HospitalSelect | null
+    select?: HospitalSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: HospitalInclude | null
+    include?: HospitalInclude<ExtArgs> | null
     /**
      * Filter, which Hospitals to fetch.
      */
@@ -1667,7 +1838,7 @@ export namespace Prisma {
      * 
      * Determine the order of Hospitals to fetch.
      */
-    orderBy?: Enumerable<HospitalOrderByWithRelationInput>
+    orderBy?: HospitalOrderByWithRelationInput | HospitalOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -1686,22 +1857,22 @@ export namespace Prisma {
      * Skip the first `n` Hospitals.
      */
     skip?: number
-    distinct?: Enumerable<HospitalScalarFieldEnum>
+    distinct?: HospitalScalarFieldEnum | HospitalScalarFieldEnum[]
   }
 
 
   /**
    * Hospital create
    */
-  export type HospitalCreateArgs = {
+  export type HospitalCreateArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Hospital
      */
-    select?: HospitalSelect | null
+    select?: HospitalSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: HospitalInclude | null
+    include?: HospitalInclude<ExtArgs> | null
     /**
      * The data needed to create a Hospital.
      */
@@ -1712,11 +1883,11 @@ export namespace Prisma {
   /**
    * Hospital createMany
    */
-  export type HospitalCreateManyArgs = {
+  export type HospitalCreateManyArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * The data used to create many Hospitals.
      */
-    data: Enumerable<HospitalCreateManyInput>
+    data: HospitalCreateManyInput | HospitalCreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -1724,15 +1895,15 @@ export namespace Prisma {
   /**
    * Hospital update
    */
-  export type HospitalUpdateArgs = {
+  export type HospitalUpdateArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Hospital
      */
-    select?: HospitalSelect | null
+    select?: HospitalSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: HospitalInclude | null
+    include?: HospitalInclude<ExtArgs> | null
     /**
      * The data needed to update a Hospital.
      */
@@ -1747,7 +1918,7 @@ export namespace Prisma {
   /**
    * Hospital updateMany
    */
-  export type HospitalUpdateManyArgs = {
+  export type HospitalUpdateManyArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * The data used to update Hospitals.
      */
@@ -1762,15 +1933,15 @@ export namespace Prisma {
   /**
    * Hospital upsert
    */
-  export type HospitalUpsertArgs = {
+  export type HospitalUpsertArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Hospital
      */
-    select?: HospitalSelect | null
+    select?: HospitalSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: HospitalInclude | null
+    include?: HospitalInclude<ExtArgs> | null
     /**
      * The filter to search for the Hospital to update in case it exists.
      */
@@ -1789,15 +1960,15 @@ export namespace Prisma {
   /**
    * Hospital delete
    */
-  export type HospitalDeleteArgs = {
+  export type HospitalDeleteArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Hospital
      */
-    select?: HospitalSelect | null
+    select?: HospitalSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: HospitalInclude | null
+    include?: HospitalInclude<ExtArgs> | null
     /**
      * Filter which Hospital to delete.
      */
@@ -1808,7 +1979,7 @@ export namespace Prisma {
   /**
    * Hospital deleteMany
    */
-  export type HospitalDeleteManyArgs = {
+  export type HospitalDeleteManyArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Filter which Hospitals to delete
      */
@@ -1819,57 +1990,57 @@ export namespace Prisma {
   /**
    * Hospital.doctors
    */
-  export type Hospital$doctorsArgs = {
+  export type Hospital$doctorsArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Doctor
      */
-    select?: DoctorSelect | null
+    select?: DoctorSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: DoctorInclude | null
+    include?: DoctorInclude<ExtArgs> | null
     where?: DoctorWhereInput
-    orderBy?: Enumerable<DoctorOrderByWithRelationInput>
+    orderBy?: DoctorOrderByWithRelationInput | DoctorOrderByWithRelationInput[]
     cursor?: DoctorWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Enumerable<DoctorScalarFieldEnum>
+    distinct?: DoctorScalarFieldEnum | DoctorScalarFieldEnum[]
   }
 
 
   /**
    * Hospital.schedules
    */
-  export type Hospital$schedulesArgs = {
+  export type Hospital$schedulesArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Schedule
      */
-    select?: ScheduleSelect | null
+    select?: ScheduleSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: ScheduleInclude | null
+    include?: ScheduleInclude<ExtArgs> | null
     where?: ScheduleWhereInput
-    orderBy?: Enumerable<ScheduleOrderByWithRelationInput>
+    orderBy?: ScheduleOrderByWithRelationInput | ScheduleOrderByWithRelationInput[]
     cursor?: ScheduleWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Enumerable<ScheduleScalarFieldEnum>
+    distinct?: ScheduleScalarFieldEnum | ScheduleScalarFieldEnum[]
   }
 
 
   /**
    * Hospital without action
    */
-  export type HospitalArgs = {
+  export type HospitalDefaultArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Hospital
      */
-    select?: HospitalSelect | null
+    select?: HospitalSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: HospitalInclude | null
+    include?: HospitalInclude<ExtArgs> | null
   }
 
 
@@ -1877,7 +2048,6 @@ export namespace Prisma {
   /**
    * Model Doctor
    */
-
 
   export type AggregateDoctor = {
     _count: DoctorCountAggregateOutputType | null
@@ -1918,7 +2088,7 @@ export namespace Prisma {
     _all?: true
   }
 
-  export type DoctorAggregateArgs = {
+  export type DoctorAggregateArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Filter which Doctor to aggregate.
      */
@@ -1928,7 +2098,7 @@ export namespace Prisma {
      * 
      * Determine the order of Doctors to fetch.
      */
-    orderBy?: Enumerable<DoctorOrderByWithRelationInput>
+    orderBy?: DoctorOrderByWithRelationInput | DoctorOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -1978,10 +2148,10 @@ export namespace Prisma {
 
 
 
-  export type DoctorGroupByArgs = {
+  export type DoctorGroupByArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     where?: DoctorWhereInput
-    orderBy?: Enumerable<DoctorOrderByWithAggregationInput>
-    by: DoctorScalarFieldEnum[]
+    orderBy?: DoctorOrderByWithAggregationInput | DoctorOrderByWithAggregationInput[]
+    by: DoctorScalarFieldEnum[] | DoctorScalarFieldEnum
     having?: DoctorScalarWhereWithAggregatesInput
     take?: number
     skip?: number
@@ -1989,7 +2159,6 @@ export namespace Prisma {
     _min?: DoctorMinAggregateInputType
     _max?: DoctorMaxAggregateInputType
   }
-
 
   export type DoctorGroupByOutputType = {
     id: string
@@ -2001,7 +2170,7 @@ export namespace Prisma {
 
   type GetDoctorGroupByPayload<T extends DoctorGroupByArgs> = Prisma.PrismaPromise<
     Array<
-      PickArray<DoctorGroupByOutputType, T['by']> &
+      PickEnumerable<DoctorGroupByOutputType, T['by']> &
         {
           [P in ((keyof T) & (keyof DoctorGroupByOutputType))]: P extends '_count'
             ? T[P] extends boolean
@@ -2013,49 +2182,49 @@ export namespace Prisma {
     >
 
 
-  export type DoctorSelect = {
+  export type DoctorSelect<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     name?: boolean
-    hospitals?: boolean | Doctor$hospitalsArgs
-    schedules?: boolean | Doctor$schedulesArgs
-    _count?: boolean | DoctorCountOutputTypeArgs
+    hospitals?: boolean | Doctor$hospitalsArgs<ExtArgs>
+    schedules?: boolean | Doctor$schedulesArgs<ExtArgs>
+    _count?: boolean | DoctorCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["doctor"]>
+
+  export type DoctorSelectScalar = {
+    id?: boolean
+    name?: boolean
+  }
+
+  export type DoctorInclude<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+    hospitals?: boolean | Doctor$hospitalsArgs<ExtArgs>
+    schedules?: boolean | Doctor$schedulesArgs<ExtArgs>
+    _count?: boolean | DoctorCountOutputTypeDefaultArgs<ExtArgs>
   }
 
 
-  export type DoctorInclude = {
-    hospitals?: boolean | Doctor$hospitalsArgs
-    schedules?: boolean | Doctor$schedulesArgs
-    _count?: boolean | DoctorCountOutputTypeArgs
+  export type $DoctorPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+    name: "Doctor"
+    objects: {
+      hospitals: Prisma.$HospitalPayload<ExtArgs>[]
+      schedules: Prisma.$SchedulePayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetResult<{
+      id: string
+      name: string
+    }, ExtArgs["result"]["doctor"]>
+    composites: {}
   }
 
-  export type DoctorGetPayload<S extends boolean | null | undefined | DoctorArgs> =
-    S extends { select: any, include: any } ? 'Please either choose `select` or `include`' :
-    S extends true ? Doctor :
-    S extends undefined ? never :
-    S extends { include: any } & (DoctorArgs | DoctorFindManyArgs)
-    ? Doctor  & {
-    [P in TruthyKeys<S['include']>]:
-        P extends 'hospitals' ? Array < HospitalGetPayload<S['include'][P]>>  :
-        P extends 'schedules' ? Array < ScheduleGetPayload<S['include'][P]>>  :
-        P extends '_count' ? DoctorCountOutputTypeGetPayload<S['include'][P]> :  never
-  } 
-    : S extends { select: any } & (DoctorArgs | DoctorFindManyArgs)
-      ? {
-    [P in TruthyKeys<S['select']>]:
-        P extends 'hospitals' ? Array < HospitalGetPayload<S['select'][P]>>  :
-        P extends 'schedules' ? Array < ScheduleGetPayload<S['select'][P]>>  :
-        P extends '_count' ? DoctorCountOutputTypeGetPayload<S['select'][P]> :  P extends keyof Doctor ? Doctor[P] : never
-  } 
-      : Doctor
 
+  type DoctorGetPayload<S extends boolean | null | undefined | DoctorDefaultArgs> = $Result.GetResult<Prisma.$DoctorPayload, S>
 
-  type DoctorCountArgs = 
+  type DoctorCountArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = 
     Omit<DoctorFindManyArgs, 'select' | 'include'> & {
       select?: DoctorCountAggregateInputType | true
     }
 
-  export interface DoctorDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
-
+  export interface DoctorDelegate<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Doctor'], meta: { name: 'Doctor' } }
     /**
      * Find zero or one Doctor that matches the filter.
      * @param {DoctorFindUniqueArgs} args - Arguments to find a Doctor
@@ -2067,9 +2236,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends DoctorFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
-      args: SelectSubset<T, DoctorFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'Doctor'> extends True ? Prisma__DoctorClient<DoctorGetPayload<T>> : Prisma__DoctorClient<DoctorGetPayload<T> | null, null>
+    findUnique<T extends DoctorFindUniqueArgs<ExtArgs>>(
+      args: SelectSubset<T, DoctorFindUniqueArgs<ExtArgs>>
+    ): Prisma__DoctorClient<$Result.GetResult<Prisma.$DoctorPayload<ExtArgs>, T, 'findUnique'> | null, null, ExtArgs>
 
     /**
      * Find one Doctor that matches the filter or throw an error  with `error.code='P2025'` 
@@ -2083,9 +2252,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUniqueOrThrow<T extends DoctorFindUniqueOrThrowArgs>(
-      args?: SelectSubset<T, DoctorFindUniqueOrThrowArgs>
-    ): Prisma__DoctorClient<DoctorGetPayload<T>>
+    findUniqueOrThrow<T extends DoctorFindUniqueOrThrowArgs<ExtArgs>>(
+      args?: SelectSubset<T, DoctorFindUniqueOrThrowArgs<ExtArgs>>
+    ): Prisma__DoctorClient<$Result.GetResult<Prisma.$DoctorPayload<ExtArgs>, T, 'findUniqueOrThrow'>, never, ExtArgs>
 
     /**
      * Find the first Doctor that matches the filter.
@@ -2100,13 +2269,13 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findFirst<T extends DoctorFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
-      args?: SelectSubset<T, DoctorFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'Doctor'> extends True ? Prisma__DoctorClient<DoctorGetPayload<T>> : Prisma__DoctorClient<DoctorGetPayload<T> | null, null>
+    findFirst<T extends DoctorFindFirstArgs<ExtArgs>>(
+      args?: SelectSubset<T, DoctorFindFirstArgs<ExtArgs>>
+    ): Prisma__DoctorClient<$Result.GetResult<Prisma.$DoctorPayload<ExtArgs>, T, 'findFirst'> | null, null, ExtArgs>
 
     /**
      * Find the first Doctor that matches the filter or
-     * throw `NotFoundError` if no matches were found.
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
      * @param {DoctorFindFirstOrThrowArgs} args - Arguments to find a Doctor
@@ -2118,9 +2287,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findFirstOrThrow<T extends DoctorFindFirstOrThrowArgs>(
-      args?: SelectSubset<T, DoctorFindFirstOrThrowArgs>
-    ): Prisma__DoctorClient<DoctorGetPayload<T>>
+    findFirstOrThrow<T extends DoctorFindFirstOrThrowArgs<ExtArgs>>(
+      args?: SelectSubset<T, DoctorFindFirstOrThrowArgs<ExtArgs>>
+    ): Prisma__DoctorClient<$Result.GetResult<Prisma.$DoctorPayload<ExtArgs>, T, 'findFirstOrThrow'>, never, ExtArgs>
 
     /**
      * Find zero or more Doctors that matches the filter.
@@ -2138,9 +2307,9 @@ export namespace Prisma {
      * const doctorWithIdOnly = await prisma.doctor.findMany({ select: { id: true } })
      * 
     **/
-    findMany<T extends DoctorFindManyArgs>(
-      args?: SelectSubset<T, DoctorFindManyArgs>
-    ): Prisma.PrismaPromise<Array<DoctorGetPayload<T>>>
+    findMany<T extends DoctorFindManyArgs<ExtArgs>>(
+      args?: SelectSubset<T, DoctorFindManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DoctorPayload<ExtArgs>, T, 'findMany'>>
 
     /**
      * Create a Doctor.
@@ -2154,9 +2323,9 @@ export namespace Prisma {
      * })
      * 
     **/
-    create<T extends DoctorCreateArgs>(
-      args: SelectSubset<T, DoctorCreateArgs>
-    ): Prisma__DoctorClient<DoctorGetPayload<T>>
+    create<T extends DoctorCreateArgs<ExtArgs>>(
+      args: SelectSubset<T, DoctorCreateArgs<ExtArgs>>
+    ): Prisma__DoctorClient<$Result.GetResult<Prisma.$DoctorPayload<ExtArgs>, T, 'create'>, never, ExtArgs>
 
     /**
      * Create many Doctors.
@@ -2170,8 +2339,8 @@ export namespace Prisma {
      *     })
      *     
     **/
-    createMany<T extends DoctorCreateManyArgs>(
-      args?: SelectSubset<T, DoctorCreateManyArgs>
+    createMany<T extends DoctorCreateManyArgs<ExtArgs>>(
+      args?: SelectSubset<T, DoctorCreateManyArgs<ExtArgs>>
     ): Prisma.PrismaPromise<BatchPayload>
 
     /**
@@ -2186,9 +2355,9 @@ export namespace Prisma {
      * })
      * 
     **/
-    delete<T extends DoctorDeleteArgs>(
-      args: SelectSubset<T, DoctorDeleteArgs>
-    ): Prisma__DoctorClient<DoctorGetPayload<T>>
+    delete<T extends DoctorDeleteArgs<ExtArgs>>(
+      args: SelectSubset<T, DoctorDeleteArgs<ExtArgs>>
+    ): Prisma__DoctorClient<$Result.GetResult<Prisma.$DoctorPayload<ExtArgs>, T, 'delete'>, never, ExtArgs>
 
     /**
      * Update one Doctor.
@@ -2205,9 +2374,9 @@ export namespace Prisma {
      * })
      * 
     **/
-    update<T extends DoctorUpdateArgs>(
-      args: SelectSubset<T, DoctorUpdateArgs>
-    ): Prisma__DoctorClient<DoctorGetPayload<T>>
+    update<T extends DoctorUpdateArgs<ExtArgs>>(
+      args: SelectSubset<T, DoctorUpdateArgs<ExtArgs>>
+    ): Prisma__DoctorClient<$Result.GetResult<Prisma.$DoctorPayload<ExtArgs>, T, 'update'>, never, ExtArgs>
 
     /**
      * Delete zero or more Doctors.
@@ -2221,8 +2390,8 @@ export namespace Prisma {
      * })
      * 
     **/
-    deleteMany<T extends DoctorDeleteManyArgs>(
-      args?: SelectSubset<T, DoctorDeleteManyArgs>
+    deleteMany<T extends DoctorDeleteManyArgs<ExtArgs>>(
+      args?: SelectSubset<T, DoctorDeleteManyArgs<ExtArgs>>
     ): Prisma.PrismaPromise<BatchPayload>
 
     /**
@@ -2242,8 +2411,8 @@ export namespace Prisma {
      * })
      * 
     **/
-    updateMany<T extends DoctorUpdateManyArgs>(
-      args: SelectSubset<T, DoctorUpdateManyArgs>
+    updateMany<T extends DoctorUpdateManyArgs<ExtArgs>>(
+      args: SelectSubset<T, DoctorUpdateManyArgs<ExtArgs>>
     ): Prisma.PrismaPromise<BatchPayload>
 
     /**
@@ -2263,9 +2432,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    upsert<T extends DoctorUpsertArgs>(
-      args: SelectSubset<T, DoctorUpsertArgs>
-    ): Prisma__DoctorClient<DoctorGetPayload<T>>
+    upsert<T extends DoctorUpsertArgs<ExtArgs>>(
+      args: SelectSubset<T, DoctorUpsertArgs<ExtArgs>>
+    ): Prisma__DoctorClient<$Result.GetResult<Prisma.$DoctorPayload<ExtArgs>, T, 'upsert'>, never, ExtArgs>
 
     /**
      * Count the number of Doctors.
@@ -2283,7 +2452,7 @@ export namespace Prisma {
     count<T extends DoctorCountArgs>(
       args?: Subset<T, DoctorCountArgs>,
     ): Prisma.PrismaPromise<
-      T extends _Record<'select', any>
+      T extends $Utils.Record<'select', any>
         ? T['select'] extends true
           ? number
           : GetScalarType<T['select'], DoctorCountAggregateOutputType>
@@ -2344,7 +2513,7 @@ export namespace Prisma {
         ? { orderBy: DoctorGroupByArgs['orderBy'] }
         : { orderBy?: DoctorGroupByArgs['orderBy'] },
       OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
-      ByFields extends TupleToUnion<T['by']>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
       HavingFields extends GetHavingFields<T['having']>,
       HavingValid extends Has<ByFields, HavingFields>,
@@ -2392,7 +2561,10 @@ export namespace Prisma {
             : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
         }[OrderFields]
     >(args: SubsetIntersection<T, DoctorGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetDoctorGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
-
+  /**
+   * Fields of the Doctor model
+   */
+  readonly fields: DoctorFieldRefs;
   }
 
   /**
@@ -2401,94 +2573,79 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export class Prisma__DoctorClient<T, Null = never> implements Prisma.PrismaPromise<T> {
-    private readonly _dmmf;
-    private readonly _queryType;
-    private readonly _rootField;
-    private readonly _clientMethod;
-    private readonly _args;
-    private readonly _dataPath;
-    private readonly _errorFormat;
-    private readonly _measurePerformance?;
-    private _isList;
-    private _callsite;
-    private _requestPromise?;
+  export interface Prisma__DoctorClient<T, Null = never, ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: 'PrismaPromise';
-    constructor(_dmmf: runtime.DMMFClass, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
 
-    hospitals<T extends Doctor$hospitalsArgs= {}>(args?: Subset<T, Doctor$hospitalsArgs>): Prisma.PrismaPromise<Array<HospitalGetPayload<T>>| Null>;
+    hospitals<T extends Doctor$hospitalsArgs<ExtArgs> = {}>(args?: Subset<T, Doctor$hospitalsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$HospitalPayload<ExtArgs>, T, 'findMany'> | Null>;
 
-    schedules<T extends Doctor$schedulesArgs= {}>(args?: Subset<T, Doctor$schedulesArgs>): Prisma.PrismaPromise<Array<ScheduleGetPayload<T>>| Null>;
+    schedules<T extends Doctor$schedulesArgs<ExtArgs> = {}>(args?: Subset<T, Doctor$schedulesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SchedulePayload<ExtArgs>, T, 'findMany'> | Null>;
 
-    private get _document();
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of which ever callback is executed.
      */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>;
     /**
      * Attaches a callback for only the rejection of the Promise.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of the callback.
      */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): Promise<T | TResult>;
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>;
     /**
      * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
      * resolved value cannot be modified from the callback.
      * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
      * @returns A Promise for the completion of the callback.
      */
-    finally(onfinally?: (() => void) | undefined | null): Promise<T>;
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>;
   }
 
 
+
+  /**
+   * Fields of the Doctor model
+   */ 
+  interface DoctorFieldRefs {
+    readonly id: FieldRef<"Doctor", 'String'>
+    readonly name: FieldRef<"Doctor", 'String'>
+  }
+    
 
   // Custom InputTypes
 
   /**
-   * Doctor base type for findUnique actions
+   * Doctor findUnique
    */
-  export type DoctorFindUniqueArgsBase = {
+  export type DoctorFindUniqueArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Doctor
      */
-    select?: DoctorSelect | null
+    select?: DoctorSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: DoctorInclude | null
+    include?: DoctorInclude<ExtArgs> | null
     /**
      * Filter, which Doctor to fetch.
      */
     where: DoctorWhereUniqueInput
   }
 
-  /**
-   * Doctor findUnique
-   */
-  export interface DoctorFindUniqueArgs extends DoctorFindUniqueArgsBase {
-   /**
-    * Throw an Error if query returns no results
-    * @deprecated since 4.0.0: use `findUniqueOrThrow` method instead
-    */
-    rejectOnNotFound?: RejectOnNotFound
-  }
-      
 
   /**
    * Doctor findUniqueOrThrow
    */
-  export type DoctorFindUniqueOrThrowArgs = {
+  export type DoctorFindUniqueOrThrowArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Doctor
      */
-    select?: DoctorSelect | null
+    select?: DoctorSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: DoctorInclude | null
+    include?: DoctorInclude<ExtArgs> | null
     /**
      * Filter, which Doctor to fetch.
      */
@@ -2497,17 +2654,17 @@ export namespace Prisma {
 
 
   /**
-   * Doctor base type for findFirst actions
+   * Doctor findFirst
    */
-  export type DoctorFindFirstArgsBase = {
+  export type DoctorFindFirstArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Doctor
      */
-    select?: DoctorSelect | null
+    select?: DoctorSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: DoctorInclude | null
+    include?: DoctorInclude<ExtArgs> | null
     /**
      * Filter, which Doctor to fetch.
      */
@@ -2517,7 +2674,7 @@ export namespace Prisma {
      * 
      * Determine the order of Doctors to fetch.
      */
-    orderBy?: Enumerable<DoctorOrderByWithRelationInput>
+    orderBy?: DoctorOrderByWithRelationInput | DoctorOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -2541,33 +2698,22 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of Doctors.
      */
-    distinct?: Enumerable<DoctorScalarFieldEnum>
+    distinct?: DoctorScalarFieldEnum | DoctorScalarFieldEnum[]
   }
 
-  /**
-   * Doctor findFirst
-   */
-  export interface DoctorFindFirstArgs extends DoctorFindFirstArgsBase {
-   /**
-    * Throw an Error if query returns no results
-    * @deprecated since 4.0.0: use `findFirstOrThrow` method instead
-    */
-    rejectOnNotFound?: RejectOnNotFound
-  }
-      
 
   /**
    * Doctor findFirstOrThrow
    */
-  export type DoctorFindFirstOrThrowArgs = {
+  export type DoctorFindFirstOrThrowArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Doctor
      */
-    select?: DoctorSelect | null
+    select?: DoctorSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: DoctorInclude | null
+    include?: DoctorInclude<ExtArgs> | null
     /**
      * Filter, which Doctor to fetch.
      */
@@ -2577,7 +2723,7 @@ export namespace Prisma {
      * 
      * Determine the order of Doctors to fetch.
      */
-    orderBy?: Enumerable<DoctorOrderByWithRelationInput>
+    orderBy?: DoctorOrderByWithRelationInput | DoctorOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -2601,22 +2747,22 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of Doctors.
      */
-    distinct?: Enumerable<DoctorScalarFieldEnum>
+    distinct?: DoctorScalarFieldEnum | DoctorScalarFieldEnum[]
   }
 
 
   /**
    * Doctor findMany
    */
-  export type DoctorFindManyArgs = {
+  export type DoctorFindManyArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Doctor
      */
-    select?: DoctorSelect | null
+    select?: DoctorSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: DoctorInclude | null
+    include?: DoctorInclude<ExtArgs> | null
     /**
      * Filter, which Doctors to fetch.
      */
@@ -2626,7 +2772,7 @@ export namespace Prisma {
      * 
      * Determine the order of Doctors to fetch.
      */
-    orderBy?: Enumerable<DoctorOrderByWithRelationInput>
+    orderBy?: DoctorOrderByWithRelationInput | DoctorOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -2645,22 +2791,22 @@ export namespace Prisma {
      * Skip the first `n` Doctors.
      */
     skip?: number
-    distinct?: Enumerable<DoctorScalarFieldEnum>
+    distinct?: DoctorScalarFieldEnum | DoctorScalarFieldEnum[]
   }
 
 
   /**
    * Doctor create
    */
-  export type DoctorCreateArgs = {
+  export type DoctorCreateArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Doctor
      */
-    select?: DoctorSelect | null
+    select?: DoctorSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: DoctorInclude | null
+    include?: DoctorInclude<ExtArgs> | null
     /**
      * The data needed to create a Doctor.
      */
@@ -2671,11 +2817,11 @@ export namespace Prisma {
   /**
    * Doctor createMany
    */
-  export type DoctorCreateManyArgs = {
+  export type DoctorCreateManyArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * The data used to create many Doctors.
      */
-    data: Enumerable<DoctorCreateManyInput>
+    data: DoctorCreateManyInput | DoctorCreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -2683,15 +2829,15 @@ export namespace Prisma {
   /**
    * Doctor update
    */
-  export type DoctorUpdateArgs = {
+  export type DoctorUpdateArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Doctor
      */
-    select?: DoctorSelect | null
+    select?: DoctorSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: DoctorInclude | null
+    include?: DoctorInclude<ExtArgs> | null
     /**
      * The data needed to update a Doctor.
      */
@@ -2706,7 +2852,7 @@ export namespace Prisma {
   /**
    * Doctor updateMany
    */
-  export type DoctorUpdateManyArgs = {
+  export type DoctorUpdateManyArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * The data used to update Doctors.
      */
@@ -2721,15 +2867,15 @@ export namespace Prisma {
   /**
    * Doctor upsert
    */
-  export type DoctorUpsertArgs = {
+  export type DoctorUpsertArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Doctor
      */
-    select?: DoctorSelect | null
+    select?: DoctorSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: DoctorInclude | null
+    include?: DoctorInclude<ExtArgs> | null
     /**
      * The filter to search for the Doctor to update in case it exists.
      */
@@ -2748,15 +2894,15 @@ export namespace Prisma {
   /**
    * Doctor delete
    */
-  export type DoctorDeleteArgs = {
+  export type DoctorDeleteArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Doctor
      */
-    select?: DoctorSelect | null
+    select?: DoctorSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: DoctorInclude | null
+    include?: DoctorInclude<ExtArgs> | null
     /**
      * Filter which Doctor to delete.
      */
@@ -2767,7 +2913,7 @@ export namespace Prisma {
   /**
    * Doctor deleteMany
    */
-  export type DoctorDeleteManyArgs = {
+  export type DoctorDeleteManyArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Filter which Doctors to delete
      */
@@ -2778,57 +2924,57 @@ export namespace Prisma {
   /**
    * Doctor.hospitals
    */
-  export type Doctor$hospitalsArgs = {
+  export type Doctor$hospitalsArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Hospital
      */
-    select?: HospitalSelect | null
+    select?: HospitalSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: HospitalInclude | null
+    include?: HospitalInclude<ExtArgs> | null
     where?: HospitalWhereInput
-    orderBy?: Enumerable<HospitalOrderByWithRelationInput>
+    orderBy?: HospitalOrderByWithRelationInput | HospitalOrderByWithRelationInput[]
     cursor?: HospitalWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Enumerable<HospitalScalarFieldEnum>
+    distinct?: HospitalScalarFieldEnum | HospitalScalarFieldEnum[]
   }
 
 
   /**
    * Doctor.schedules
    */
-  export type Doctor$schedulesArgs = {
+  export type Doctor$schedulesArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Schedule
      */
-    select?: ScheduleSelect | null
+    select?: ScheduleSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: ScheduleInclude | null
+    include?: ScheduleInclude<ExtArgs> | null
     where?: ScheduleWhereInput
-    orderBy?: Enumerable<ScheduleOrderByWithRelationInput>
+    orderBy?: ScheduleOrderByWithRelationInput | ScheduleOrderByWithRelationInput[]
     cursor?: ScheduleWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Enumerable<ScheduleScalarFieldEnum>
+    distinct?: ScheduleScalarFieldEnum | ScheduleScalarFieldEnum[]
   }
 
 
   /**
    * Doctor without action
    */
-  export type DoctorArgs = {
+  export type DoctorDefaultArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Doctor
      */
-    select?: DoctorSelect | null
+    select?: DoctorSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: DoctorInclude | null
+    include?: DoctorInclude<ExtArgs> | null
   }
 
 
@@ -2836,7 +2982,6 @@ export namespace Prisma {
   /**
    * Model Schedule
    */
-
 
   export type AggregateSchedule = {
     _count: ScheduleCountAggregateOutputType | null
@@ -2895,7 +3040,7 @@ export namespace Prisma {
     _all?: true
   }
 
-  export type ScheduleAggregateArgs = {
+  export type ScheduleAggregateArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Filter which Schedule to aggregate.
      */
@@ -2905,7 +3050,7 @@ export namespace Prisma {
      * 
      * Determine the order of Schedules to fetch.
      */
-    orderBy?: Enumerable<ScheduleOrderByWithRelationInput>
+    orderBy?: ScheduleOrderByWithRelationInput | ScheduleOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -2955,10 +3100,10 @@ export namespace Prisma {
 
 
 
-  export type ScheduleGroupByArgs = {
+  export type ScheduleGroupByArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     where?: ScheduleWhereInput
-    orderBy?: Enumerable<ScheduleOrderByWithAggregationInput>
-    by: ScheduleScalarFieldEnum[]
+    orderBy?: ScheduleOrderByWithAggregationInput | ScheduleOrderByWithAggregationInput[]
+    by: ScheduleScalarFieldEnum[] | ScheduleScalarFieldEnum
     having?: ScheduleScalarWhereWithAggregatesInput
     take?: number
     skip?: number
@@ -2966,7 +3111,6 @@ export namespace Prisma {
     _min?: ScheduleMinAggregateInputType
     _max?: ScheduleMaxAggregateInputType
   }
-
 
   export type ScheduleGroupByOutputType = {
     id: string
@@ -2981,7 +3125,7 @@ export namespace Prisma {
 
   type GetScheduleGroupByPayload<T extends ScheduleGroupByArgs> = Prisma.PrismaPromise<
     Array<
-      PickArray<ScheduleGroupByOutputType, T['by']> &
+      PickEnumerable<ScheduleGroupByOutputType, T['by']> &
         {
           [P in ((keyof T) & (keyof ScheduleGroupByOutputType))]: P extends '_count'
             ? T[P] extends boolean
@@ -2993,48 +3137,56 @@ export namespace Prisma {
     >
 
 
-  export type ScheduleSelect = {
+  export type ScheduleSelect<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     startTime?: boolean
     endTime?: boolean
     doctorId?: boolean
     hospitalId?: boolean
-    doctor?: boolean | DoctorArgs
-    hospital?: boolean | HospitalArgs
+    doctor?: boolean | DoctorDefaultArgs<ExtArgs>
+    hospital?: boolean | HospitalDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["schedule"]>
+
+  export type ScheduleSelectScalar = {
+    id?: boolean
+    startTime?: boolean
+    endTime?: boolean
+    doctorId?: boolean
+    hospitalId?: boolean
+  }
+
+  export type ScheduleInclude<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+    doctor?: boolean | DoctorDefaultArgs<ExtArgs>
+    hospital?: boolean | HospitalDefaultArgs<ExtArgs>
   }
 
 
-  export type ScheduleInclude = {
-    doctor?: boolean | DoctorArgs
-    hospital?: boolean | HospitalArgs
+  export type $SchedulePayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+    name: "Schedule"
+    objects: {
+      doctor: Prisma.$DoctorPayload<ExtArgs>
+      hospital: Prisma.$HospitalPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetResult<{
+      id: string
+      startTime: Date
+      endTime: Date
+      doctorId: string
+      hospitalId: string
+    }, ExtArgs["result"]["schedule"]>
+    composites: {}
   }
 
-  export type ScheduleGetPayload<S extends boolean | null | undefined | ScheduleArgs> =
-    S extends { select: any, include: any } ? 'Please either choose `select` or `include`' :
-    S extends true ? Schedule :
-    S extends undefined ? never :
-    S extends { include: any } & (ScheduleArgs | ScheduleFindManyArgs)
-    ? Schedule  & {
-    [P in TruthyKeys<S['include']>]:
-        P extends 'doctor' ? DoctorGetPayload<S['include'][P]> :
-        P extends 'hospital' ? HospitalGetPayload<S['include'][P]> :  never
-  } 
-    : S extends { select: any } & (ScheduleArgs | ScheduleFindManyArgs)
-      ? {
-    [P in TruthyKeys<S['select']>]:
-        P extends 'doctor' ? DoctorGetPayload<S['select'][P]> :
-        P extends 'hospital' ? HospitalGetPayload<S['select'][P]> :  P extends keyof Schedule ? Schedule[P] : never
-  } 
-      : Schedule
 
+  type ScheduleGetPayload<S extends boolean | null | undefined | ScheduleDefaultArgs> = $Result.GetResult<Prisma.$SchedulePayload, S>
 
-  type ScheduleCountArgs = 
+  type ScheduleCountArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = 
     Omit<ScheduleFindManyArgs, 'select' | 'include'> & {
       select?: ScheduleCountAggregateInputType | true
     }
 
-  export interface ScheduleDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
-
+  export interface ScheduleDelegate<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Schedule'], meta: { name: 'Schedule' } }
     /**
      * Find zero or one Schedule that matches the filter.
      * @param {ScheduleFindUniqueArgs} args - Arguments to find a Schedule
@@ -3046,9 +3198,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends ScheduleFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
-      args: SelectSubset<T, ScheduleFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'Schedule'> extends True ? Prisma__ScheduleClient<ScheduleGetPayload<T>> : Prisma__ScheduleClient<ScheduleGetPayload<T> | null, null>
+    findUnique<T extends ScheduleFindUniqueArgs<ExtArgs>>(
+      args: SelectSubset<T, ScheduleFindUniqueArgs<ExtArgs>>
+    ): Prisma__ScheduleClient<$Result.GetResult<Prisma.$SchedulePayload<ExtArgs>, T, 'findUnique'> | null, null, ExtArgs>
 
     /**
      * Find one Schedule that matches the filter or throw an error  with `error.code='P2025'` 
@@ -3062,9 +3214,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUniqueOrThrow<T extends ScheduleFindUniqueOrThrowArgs>(
-      args?: SelectSubset<T, ScheduleFindUniqueOrThrowArgs>
-    ): Prisma__ScheduleClient<ScheduleGetPayload<T>>
+    findUniqueOrThrow<T extends ScheduleFindUniqueOrThrowArgs<ExtArgs>>(
+      args?: SelectSubset<T, ScheduleFindUniqueOrThrowArgs<ExtArgs>>
+    ): Prisma__ScheduleClient<$Result.GetResult<Prisma.$SchedulePayload<ExtArgs>, T, 'findUniqueOrThrow'>, never, ExtArgs>
 
     /**
      * Find the first Schedule that matches the filter.
@@ -3079,13 +3231,13 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findFirst<T extends ScheduleFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
-      args?: SelectSubset<T, ScheduleFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'Schedule'> extends True ? Prisma__ScheduleClient<ScheduleGetPayload<T>> : Prisma__ScheduleClient<ScheduleGetPayload<T> | null, null>
+    findFirst<T extends ScheduleFindFirstArgs<ExtArgs>>(
+      args?: SelectSubset<T, ScheduleFindFirstArgs<ExtArgs>>
+    ): Prisma__ScheduleClient<$Result.GetResult<Prisma.$SchedulePayload<ExtArgs>, T, 'findFirst'> | null, null, ExtArgs>
 
     /**
      * Find the first Schedule that matches the filter or
-     * throw `NotFoundError` if no matches were found.
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
      * @param {ScheduleFindFirstOrThrowArgs} args - Arguments to find a Schedule
@@ -3097,9 +3249,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findFirstOrThrow<T extends ScheduleFindFirstOrThrowArgs>(
-      args?: SelectSubset<T, ScheduleFindFirstOrThrowArgs>
-    ): Prisma__ScheduleClient<ScheduleGetPayload<T>>
+    findFirstOrThrow<T extends ScheduleFindFirstOrThrowArgs<ExtArgs>>(
+      args?: SelectSubset<T, ScheduleFindFirstOrThrowArgs<ExtArgs>>
+    ): Prisma__ScheduleClient<$Result.GetResult<Prisma.$SchedulePayload<ExtArgs>, T, 'findFirstOrThrow'>, never, ExtArgs>
 
     /**
      * Find zero or more Schedules that matches the filter.
@@ -3117,9 +3269,9 @@ export namespace Prisma {
      * const scheduleWithIdOnly = await prisma.schedule.findMany({ select: { id: true } })
      * 
     **/
-    findMany<T extends ScheduleFindManyArgs>(
-      args?: SelectSubset<T, ScheduleFindManyArgs>
-    ): Prisma.PrismaPromise<Array<ScheduleGetPayload<T>>>
+    findMany<T extends ScheduleFindManyArgs<ExtArgs>>(
+      args?: SelectSubset<T, ScheduleFindManyArgs<ExtArgs>>
+    ): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SchedulePayload<ExtArgs>, T, 'findMany'>>
 
     /**
      * Create a Schedule.
@@ -3133,9 +3285,9 @@ export namespace Prisma {
      * })
      * 
     **/
-    create<T extends ScheduleCreateArgs>(
-      args: SelectSubset<T, ScheduleCreateArgs>
-    ): Prisma__ScheduleClient<ScheduleGetPayload<T>>
+    create<T extends ScheduleCreateArgs<ExtArgs>>(
+      args: SelectSubset<T, ScheduleCreateArgs<ExtArgs>>
+    ): Prisma__ScheduleClient<$Result.GetResult<Prisma.$SchedulePayload<ExtArgs>, T, 'create'>, never, ExtArgs>
 
     /**
      * Create many Schedules.
@@ -3149,8 +3301,8 @@ export namespace Prisma {
      *     })
      *     
     **/
-    createMany<T extends ScheduleCreateManyArgs>(
-      args?: SelectSubset<T, ScheduleCreateManyArgs>
+    createMany<T extends ScheduleCreateManyArgs<ExtArgs>>(
+      args?: SelectSubset<T, ScheduleCreateManyArgs<ExtArgs>>
     ): Prisma.PrismaPromise<BatchPayload>
 
     /**
@@ -3165,9 +3317,9 @@ export namespace Prisma {
      * })
      * 
     **/
-    delete<T extends ScheduleDeleteArgs>(
-      args: SelectSubset<T, ScheduleDeleteArgs>
-    ): Prisma__ScheduleClient<ScheduleGetPayload<T>>
+    delete<T extends ScheduleDeleteArgs<ExtArgs>>(
+      args: SelectSubset<T, ScheduleDeleteArgs<ExtArgs>>
+    ): Prisma__ScheduleClient<$Result.GetResult<Prisma.$SchedulePayload<ExtArgs>, T, 'delete'>, never, ExtArgs>
 
     /**
      * Update one Schedule.
@@ -3184,9 +3336,9 @@ export namespace Prisma {
      * })
      * 
     **/
-    update<T extends ScheduleUpdateArgs>(
-      args: SelectSubset<T, ScheduleUpdateArgs>
-    ): Prisma__ScheduleClient<ScheduleGetPayload<T>>
+    update<T extends ScheduleUpdateArgs<ExtArgs>>(
+      args: SelectSubset<T, ScheduleUpdateArgs<ExtArgs>>
+    ): Prisma__ScheduleClient<$Result.GetResult<Prisma.$SchedulePayload<ExtArgs>, T, 'update'>, never, ExtArgs>
 
     /**
      * Delete zero or more Schedules.
@@ -3200,8 +3352,8 @@ export namespace Prisma {
      * })
      * 
     **/
-    deleteMany<T extends ScheduleDeleteManyArgs>(
-      args?: SelectSubset<T, ScheduleDeleteManyArgs>
+    deleteMany<T extends ScheduleDeleteManyArgs<ExtArgs>>(
+      args?: SelectSubset<T, ScheduleDeleteManyArgs<ExtArgs>>
     ): Prisma.PrismaPromise<BatchPayload>
 
     /**
@@ -3221,8 +3373,8 @@ export namespace Prisma {
      * })
      * 
     **/
-    updateMany<T extends ScheduleUpdateManyArgs>(
-      args: SelectSubset<T, ScheduleUpdateManyArgs>
+    updateMany<T extends ScheduleUpdateManyArgs<ExtArgs>>(
+      args: SelectSubset<T, ScheduleUpdateManyArgs<ExtArgs>>
     ): Prisma.PrismaPromise<BatchPayload>
 
     /**
@@ -3242,9 +3394,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    upsert<T extends ScheduleUpsertArgs>(
-      args: SelectSubset<T, ScheduleUpsertArgs>
-    ): Prisma__ScheduleClient<ScheduleGetPayload<T>>
+    upsert<T extends ScheduleUpsertArgs<ExtArgs>>(
+      args: SelectSubset<T, ScheduleUpsertArgs<ExtArgs>>
+    ): Prisma__ScheduleClient<$Result.GetResult<Prisma.$SchedulePayload<ExtArgs>, T, 'upsert'>, never, ExtArgs>
 
     /**
      * Count the number of Schedules.
@@ -3262,7 +3414,7 @@ export namespace Prisma {
     count<T extends ScheduleCountArgs>(
       args?: Subset<T, ScheduleCountArgs>,
     ): Prisma.PrismaPromise<
-      T extends _Record<'select', any>
+      T extends $Utils.Record<'select', any>
         ? T['select'] extends true
           ? number
           : GetScalarType<T['select'], ScheduleCountAggregateOutputType>
@@ -3323,7 +3475,7 @@ export namespace Prisma {
         ? { orderBy: ScheduleGroupByArgs['orderBy'] }
         : { orderBy?: ScheduleGroupByArgs['orderBy'] },
       OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
-      ByFields extends TupleToUnion<T['by']>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
       HavingFields extends GetHavingFields<T['having']>,
       HavingValid extends Has<ByFields, HavingFields>,
@@ -3371,7 +3523,10 @@ export namespace Prisma {
             : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
         }[OrderFields]
     >(args: SubsetIntersection<T, ScheduleGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetScheduleGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
-
+  /**
+   * Fields of the Schedule model
+   */
+  readonly fields: ScheduleFieldRefs;
   }
 
   /**
@@ -3380,94 +3535,82 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export class Prisma__ScheduleClient<T, Null = never> implements Prisma.PrismaPromise<T> {
-    private readonly _dmmf;
-    private readonly _queryType;
-    private readonly _rootField;
-    private readonly _clientMethod;
-    private readonly _args;
-    private readonly _dataPath;
-    private readonly _errorFormat;
-    private readonly _measurePerformance?;
-    private _isList;
-    private _callsite;
-    private _requestPromise?;
+  export interface Prisma__ScheduleClient<T, Null = never, ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: 'PrismaPromise';
-    constructor(_dmmf: runtime.DMMFClass, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
 
-    doctor<T extends DoctorArgs= {}>(args?: Subset<T, DoctorArgs>): Prisma__DoctorClient<DoctorGetPayload<T> | Null>;
+    doctor<T extends DoctorDefaultArgs<ExtArgs> = {}>(args?: Subset<T, DoctorDefaultArgs<ExtArgs>>): Prisma__DoctorClient<$Result.GetResult<Prisma.$DoctorPayload<ExtArgs>, T, 'findUniqueOrThrow'> | Null, Null, ExtArgs>;
 
-    hospital<T extends HospitalArgs= {}>(args?: Subset<T, HospitalArgs>): Prisma__HospitalClient<HospitalGetPayload<T> | Null>;
+    hospital<T extends HospitalDefaultArgs<ExtArgs> = {}>(args?: Subset<T, HospitalDefaultArgs<ExtArgs>>): Prisma__HospitalClient<$Result.GetResult<Prisma.$HospitalPayload<ExtArgs>, T, 'findUniqueOrThrow'> | Null, Null, ExtArgs>;
 
-    private get _document();
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of which ever callback is executed.
      */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>;
     /**
      * Attaches a callback for only the rejection of the Promise.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of the callback.
      */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): Promise<T | TResult>;
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>;
     /**
      * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
      * resolved value cannot be modified from the callback.
      * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
      * @returns A Promise for the completion of the callback.
      */
-    finally(onfinally?: (() => void) | undefined | null): Promise<T>;
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>;
   }
 
 
+
+  /**
+   * Fields of the Schedule model
+   */ 
+  interface ScheduleFieldRefs {
+    readonly id: FieldRef<"Schedule", 'String'>
+    readonly startTime: FieldRef<"Schedule", 'DateTime'>
+    readonly endTime: FieldRef<"Schedule", 'DateTime'>
+    readonly doctorId: FieldRef<"Schedule", 'String'>
+    readonly hospitalId: FieldRef<"Schedule", 'String'>
+  }
+    
 
   // Custom InputTypes
 
   /**
-   * Schedule base type for findUnique actions
+   * Schedule findUnique
    */
-  export type ScheduleFindUniqueArgsBase = {
+  export type ScheduleFindUniqueArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Schedule
      */
-    select?: ScheduleSelect | null
+    select?: ScheduleSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: ScheduleInclude | null
+    include?: ScheduleInclude<ExtArgs> | null
     /**
      * Filter, which Schedule to fetch.
      */
     where: ScheduleWhereUniqueInput
   }
 
-  /**
-   * Schedule findUnique
-   */
-  export interface ScheduleFindUniqueArgs extends ScheduleFindUniqueArgsBase {
-   /**
-    * Throw an Error if query returns no results
-    * @deprecated since 4.0.0: use `findUniqueOrThrow` method instead
-    */
-    rejectOnNotFound?: RejectOnNotFound
-  }
-      
 
   /**
    * Schedule findUniqueOrThrow
    */
-  export type ScheduleFindUniqueOrThrowArgs = {
+  export type ScheduleFindUniqueOrThrowArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Schedule
      */
-    select?: ScheduleSelect | null
+    select?: ScheduleSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: ScheduleInclude | null
+    include?: ScheduleInclude<ExtArgs> | null
     /**
      * Filter, which Schedule to fetch.
      */
@@ -3476,17 +3619,17 @@ export namespace Prisma {
 
 
   /**
-   * Schedule base type for findFirst actions
+   * Schedule findFirst
    */
-  export type ScheduleFindFirstArgsBase = {
+  export type ScheduleFindFirstArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Schedule
      */
-    select?: ScheduleSelect | null
+    select?: ScheduleSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: ScheduleInclude | null
+    include?: ScheduleInclude<ExtArgs> | null
     /**
      * Filter, which Schedule to fetch.
      */
@@ -3496,7 +3639,7 @@ export namespace Prisma {
      * 
      * Determine the order of Schedules to fetch.
      */
-    orderBy?: Enumerable<ScheduleOrderByWithRelationInput>
+    orderBy?: ScheduleOrderByWithRelationInput | ScheduleOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -3520,33 +3663,22 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of Schedules.
      */
-    distinct?: Enumerable<ScheduleScalarFieldEnum>
+    distinct?: ScheduleScalarFieldEnum | ScheduleScalarFieldEnum[]
   }
 
-  /**
-   * Schedule findFirst
-   */
-  export interface ScheduleFindFirstArgs extends ScheduleFindFirstArgsBase {
-   /**
-    * Throw an Error if query returns no results
-    * @deprecated since 4.0.0: use `findFirstOrThrow` method instead
-    */
-    rejectOnNotFound?: RejectOnNotFound
-  }
-      
 
   /**
    * Schedule findFirstOrThrow
    */
-  export type ScheduleFindFirstOrThrowArgs = {
+  export type ScheduleFindFirstOrThrowArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Schedule
      */
-    select?: ScheduleSelect | null
+    select?: ScheduleSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: ScheduleInclude | null
+    include?: ScheduleInclude<ExtArgs> | null
     /**
      * Filter, which Schedule to fetch.
      */
@@ -3556,7 +3688,7 @@ export namespace Prisma {
      * 
      * Determine the order of Schedules to fetch.
      */
-    orderBy?: Enumerable<ScheduleOrderByWithRelationInput>
+    orderBy?: ScheduleOrderByWithRelationInput | ScheduleOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -3580,22 +3712,22 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of Schedules.
      */
-    distinct?: Enumerable<ScheduleScalarFieldEnum>
+    distinct?: ScheduleScalarFieldEnum | ScheduleScalarFieldEnum[]
   }
 
 
   /**
    * Schedule findMany
    */
-  export type ScheduleFindManyArgs = {
+  export type ScheduleFindManyArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Schedule
      */
-    select?: ScheduleSelect | null
+    select?: ScheduleSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: ScheduleInclude | null
+    include?: ScheduleInclude<ExtArgs> | null
     /**
      * Filter, which Schedules to fetch.
      */
@@ -3605,7 +3737,7 @@ export namespace Prisma {
      * 
      * Determine the order of Schedules to fetch.
      */
-    orderBy?: Enumerable<ScheduleOrderByWithRelationInput>
+    orderBy?: ScheduleOrderByWithRelationInput | ScheduleOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -3624,22 +3756,22 @@ export namespace Prisma {
      * Skip the first `n` Schedules.
      */
     skip?: number
-    distinct?: Enumerable<ScheduleScalarFieldEnum>
+    distinct?: ScheduleScalarFieldEnum | ScheduleScalarFieldEnum[]
   }
 
 
   /**
    * Schedule create
    */
-  export type ScheduleCreateArgs = {
+  export type ScheduleCreateArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Schedule
      */
-    select?: ScheduleSelect | null
+    select?: ScheduleSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: ScheduleInclude | null
+    include?: ScheduleInclude<ExtArgs> | null
     /**
      * The data needed to create a Schedule.
      */
@@ -3650,11 +3782,11 @@ export namespace Prisma {
   /**
    * Schedule createMany
    */
-  export type ScheduleCreateManyArgs = {
+  export type ScheduleCreateManyArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * The data used to create many Schedules.
      */
-    data: Enumerable<ScheduleCreateManyInput>
+    data: ScheduleCreateManyInput | ScheduleCreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -3662,15 +3794,15 @@ export namespace Prisma {
   /**
    * Schedule update
    */
-  export type ScheduleUpdateArgs = {
+  export type ScheduleUpdateArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Schedule
      */
-    select?: ScheduleSelect | null
+    select?: ScheduleSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: ScheduleInclude | null
+    include?: ScheduleInclude<ExtArgs> | null
     /**
      * The data needed to update a Schedule.
      */
@@ -3685,7 +3817,7 @@ export namespace Prisma {
   /**
    * Schedule updateMany
    */
-  export type ScheduleUpdateManyArgs = {
+  export type ScheduleUpdateManyArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * The data used to update Schedules.
      */
@@ -3700,15 +3832,15 @@ export namespace Prisma {
   /**
    * Schedule upsert
    */
-  export type ScheduleUpsertArgs = {
+  export type ScheduleUpsertArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Schedule
      */
-    select?: ScheduleSelect | null
+    select?: ScheduleSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: ScheduleInclude | null
+    include?: ScheduleInclude<ExtArgs> | null
     /**
      * The filter to search for the Schedule to update in case it exists.
      */
@@ -3727,15 +3859,15 @@ export namespace Prisma {
   /**
    * Schedule delete
    */
-  export type ScheduleDeleteArgs = {
+  export type ScheduleDeleteArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Schedule
      */
-    select?: ScheduleSelect | null
+    select?: ScheduleSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: ScheduleInclude | null
+    include?: ScheduleInclude<ExtArgs> | null
     /**
      * Filter which Schedule to delete.
      */
@@ -3746,7 +3878,7 @@ export namespace Prisma {
   /**
    * Schedule deleteMany
    */
-  export type ScheduleDeleteManyArgs = {
+  export type ScheduleDeleteManyArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Filter which Schedules to delete
      */
@@ -3757,15 +3889,15 @@ export namespace Prisma {
   /**
    * Schedule without action
    */
-  export type ScheduleArgs = {
+  export type ScheduleDefaultArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Schedule
      */
-    select?: ScheduleSelect | null
+    select?: ScheduleSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well.
      */
-    include?: ScheduleInclude | null
+    include?: ScheduleInclude<ExtArgs> | null
   }
 
 
@@ -3774,15 +3906,14 @@ export namespace Prisma {
    * Enums
    */
 
-  // Based on
-  // https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
-
-  export const DoctorScalarFieldEnum: {
-    id: 'id',
-    name: 'name'
+  export const TransactionIsolationLevel: {
+    ReadUncommitted: 'ReadUncommitted',
+    ReadCommitted: 'ReadCommitted',
+    RepeatableRead: 'RepeatableRead',
+    Serializable: 'Serializable'
   };
 
-  export type DoctorScalarFieldEnum = (typeof DoctorScalarFieldEnum)[keyof typeof DoctorScalarFieldEnum]
+  export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
 
 
   export const HospitalScalarFieldEnum: {
@@ -3793,12 +3924,12 @@ export namespace Prisma {
   export type HospitalScalarFieldEnum = (typeof HospitalScalarFieldEnum)[keyof typeof HospitalScalarFieldEnum]
 
 
-  export const QueryMode: {
-    default: 'default',
-    insensitive: 'insensitive'
+  export const DoctorScalarFieldEnum: {
+    id: 'id',
+    name: 'name'
   };
 
-  export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
+  export type DoctorScalarFieldEnum = (typeof DoctorScalarFieldEnum)[keyof typeof DoctorScalarFieldEnum]
 
 
   export const ScheduleScalarFieldEnum: {
@@ -3820,27 +3951,70 @@ export namespace Prisma {
   export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
-  export const TransactionIsolationLevel: {
-    ReadUncommitted: 'ReadUncommitted',
-    ReadCommitted: 'ReadCommitted',
-    RepeatableRead: 'RepeatableRead',
-    Serializable: 'Serializable'
+  export const QueryMode: {
+    default: 'default',
+    insensitive: 'insensitive'
   };
 
-  export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
+  export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
 
 
+  /**
+   * Field references 
+   */
+
+
+  /**
+   * Reference to a field of type 'String'
+   */
+  export type StringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'String'>
+    
+
+
+  /**
+   * Reference to a field of type 'String[]'
+   */
+  export type ListStringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'String[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'DateTime'
+   */
+  export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
+    
+
+
+  /**
+   * Reference to a field of type 'DateTime[]'
+   */
+  export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'Int'
+   */
+  export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+    
+
+
+  /**
+   * Reference to a field of type 'Int[]'
+   */
+  export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
   /**
    * Deep Input Types
    */
 
 
   export type HospitalWhereInput = {
-    AND?: Enumerable<HospitalWhereInput>
-    OR?: Enumerable<HospitalWhereInput>
-    NOT?: Enumerable<HospitalWhereInput>
-    id?: StringFilter | string
-    name?: StringFilter | string
+    AND?: HospitalWhereInput | HospitalWhereInput[]
+    OR?: HospitalWhereInput[]
+    NOT?: HospitalWhereInput | HospitalWhereInput[]
+    id?: StringFilter<"Hospital"> | string
+    name?: StringFilter<"Hospital"> | string
     doctors?: DoctorListRelationFilter
     schedules?: ScheduleListRelationFilter
   }
@@ -3852,9 +4026,15 @@ export namespace Prisma {
     schedules?: ScheduleOrderByRelationAggregateInput
   }
 
-  export type HospitalWhereUniqueInput = {
+  export type HospitalWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-  }
+    AND?: HospitalWhereInput | HospitalWhereInput[]
+    OR?: HospitalWhereInput[]
+    NOT?: HospitalWhereInput | HospitalWhereInput[]
+    name?: StringFilter<"Hospital"> | string
+    doctors?: DoctorListRelationFilter
+    schedules?: ScheduleListRelationFilter
+  }, "id" | "id">
 
   export type HospitalOrderByWithAggregationInput = {
     id?: SortOrder
@@ -3865,19 +4045,19 @@ export namespace Prisma {
   }
 
   export type HospitalScalarWhereWithAggregatesInput = {
-    AND?: Enumerable<HospitalScalarWhereWithAggregatesInput>
-    OR?: Enumerable<HospitalScalarWhereWithAggregatesInput>
-    NOT?: Enumerable<HospitalScalarWhereWithAggregatesInput>
-    id?: StringWithAggregatesFilter | string
-    name?: StringWithAggregatesFilter | string
+    AND?: HospitalScalarWhereWithAggregatesInput | HospitalScalarWhereWithAggregatesInput[]
+    OR?: HospitalScalarWhereWithAggregatesInput[]
+    NOT?: HospitalScalarWhereWithAggregatesInput | HospitalScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Hospital"> | string
+    name?: StringWithAggregatesFilter<"Hospital"> | string
   }
 
   export type DoctorWhereInput = {
-    AND?: Enumerable<DoctorWhereInput>
-    OR?: Enumerable<DoctorWhereInput>
-    NOT?: Enumerable<DoctorWhereInput>
-    id?: StringFilter | string
-    name?: StringFilter | string
+    AND?: DoctorWhereInput | DoctorWhereInput[]
+    OR?: DoctorWhereInput[]
+    NOT?: DoctorWhereInput | DoctorWhereInput[]
+    id?: StringFilter<"Doctor"> | string
+    name?: StringFilter<"Doctor"> | string
     hospitals?: HospitalListRelationFilter
     schedules?: ScheduleListRelationFilter
   }
@@ -3889,9 +4069,15 @@ export namespace Prisma {
     schedules?: ScheduleOrderByRelationAggregateInput
   }
 
-  export type DoctorWhereUniqueInput = {
+  export type DoctorWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-  }
+    AND?: DoctorWhereInput | DoctorWhereInput[]
+    OR?: DoctorWhereInput[]
+    NOT?: DoctorWhereInput | DoctorWhereInput[]
+    name?: StringFilter<"Doctor"> | string
+    hospitals?: HospitalListRelationFilter
+    schedules?: ScheduleListRelationFilter
+  }, "id" | "id">
 
   export type DoctorOrderByWithAggregationInput = {
     id?: SortOrder
@@ -3902,22 +4088,22 @@ export namespace Prisma {
   }
 
   export type DoctorScalarWhereWithAggregatesInput = {
-    AND?: Enumerable<DoctorScalarWhereWithAggregatesInput>
-    OR?: Enumerable<DoctorScalarWhereWithAggregatesInput>
-    NOT?: Enumerable<DoctorScalarWhereWithAggregatesInput>
-    id?: StringWithAggregatesFilter | string
-    name?: StringWithAggregatesFilter | string
+    AND?: DoctorScalarWhereWithAggregatesInput | DoctorScalarWhereWithAggregatesInput[]
+    OR?: DoctorScalarWhereWithAggregatesInput[]
+    NOT?: DoctorScalarWhereWithAggregatesInput | DoctorScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Doctor"> | string
+    name?: StringWithAggregatesFilter<"Doctor"> | string
   }
 
   export type ScheduleWhereInput = {
-    AND?: Enumerable<ScheduleWhereInput>
-    OR?: Enumerable<ScheduleWhereInput>
-    NOT?: Enumerable<ScheduleWhereInput>
-    id?: StringFilter | string
-    startTime?: DateTimeFilter | Date | string
-    endTime?: DateTimeFilter | Date | string
-    doctorId?: StringFilter | string
-    hospitalId?: StringFilter | string
+    AND?: ScheduleWhereInput | ScheduleWhereInput[]
+    OR?: ScheduleWhereInput[]
+    NOT?: ScheduleWhereInput | ScheduleWhereInput[]
+    id?: StringFilter<"Schedule"> | string
+    startTime?: DateTimeFilter<"Schedule"> | Date | string
+    endTime?: DateTimeFilter<"Schedule"> | Date | string
+    doctorId?: StringFilter<"Schedule"> | string
+    hospitalId?: StringFilter<"Schedule"> | string
     doctor?: XOR<DoctorRelationFilter, DoctorWhereInput>
     hospital?: XOR<HospitalRelationFilter, HospitalWhereInput>
   }
@@ -3932,9 +4118,18 @@ export namespace Prisma {
     hospital?: HospitalOrderByWithRelationInput
   }
 
-  export type ScheduleWhereUniqueInput = {
+  export type ScheduleWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-  }
+    AND?: ScheduleWhereInput | ScheduleWhereInput[]
+    OR?: ScheduleWhereInput[]
+    NOT?: ScheduleWhereInput | ScheduleWhereInput[]
+    startTime?: DateTimeFilter<"Schedule"> | Date | string
+    endTime?: DateTimeFilter<"Schedule"> | Date | string
+    doctorId?: StringFilter<"Schedule"> | string
+    hospitalId?: StringFilter<"Schedule"> | string
+    doctor?: XOR<DoctorRelationFilter, DoctorWhereInput>
+    hospital?: XOR<HospitalRelationFilter, HospitalWhereInput>
+  }, "id" | "id">
 
   export type ScheduleOrderByWithAggregationInput = {
     id?: SortOrder
@@ -3948,14 +4143,14 @@ export namespace Prisma {
   }
 
   export type ScheduleScalarWhereWithAggregatesInput = {
-    AND?: Enumerable<ScheduleScalarWhereWithAggregatesInput>
-    OR?: Enumerable<ScheduleScalarWhereWithAggregatesInput>
-    NOT?: Enumerable<ScheduleScalarWhereWithAggregatesInput>
-    id?: StringWithAggregatesFilter | string
-    startTime?: DateTimeWithAggregatesFilter | Date | string
-    endTime?: DateTimeWithAggregatesFilter | Date | string
-    doctorId?: StringWithAggregatesFilter | string
-    hospitalId?: StringWithAggregatesFilter | string
+    AND?: ScheduleScalarWhereWithAggregatesInput | ScheduleScalarWhereWithAggregatesInput[]
+    OR?: ScheduleScalarWhereWithAggregatesInput[]
+    NOT?: ScheduleScalarWhereWithAggregatesInput | ScheduleScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Schedule"> | string
+    startTime?: DateTimeWithAggregatesFilter<"Schedule"> | Date | string
+    endTime?: DateTimeWithAggregatesFilter<"Schedule"> | Date | string
+    doctorId?: StringWithAggregatesFilter<"Schedule"> | string
+    hospitalId?: StringWithAggregatesFilter<"Schedule"> | string
   }
 
   export type HospitalCreateInput = {
@@ -4098,19 +4293,19 @@ export namespace Prisma {
     hospitalId?: StringFieldUpdateOperationsInput | string
   }
 
-  export type StringFilter = {
-    equals?: string
-    in?: Enumerable<string> | string
-    notIn?: Enumerable<string> | string
-    lt?: string
-    lte?: string
-    gt?: string
-    gte?: string
-    contains?: string
-    startsWith?: string
-    endsWith?: string
+  export type StringFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel>
+    in?: string[] | ListStringFieldRefInput<$PrismaModel>
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel>
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
     mode?: QueryMode
-    not?: NestedStringFilter | string
+    not?: NestedStringFilter<$PrismaModel> | string
   }
 
   export type DoctorListRelationFilter = {
@@ -4148,22 +4343,22 @@ export namespace Prisma {
     name?: SortOrder
   }
 
-  export type StringWithAggregatesFilter = {
-    equals?: string
-    in?: Enumerable<string> | string
-    notIn?: Enumerable<string> | string
-    lt?: string
-    lte?: string
-    gt?: string
-    gte?: string
-    contains?: string
-    startsWith?: string
-    endsWith?: string
+  export type StringWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel>
+    in?: string[] | ListStringFieldRefInput<$PrismaModel>
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel>
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
     mode?: QueryMode
-    not?: NestedStringWithAggregatesFilter | string
-    _count?: NestedIntFilter
-    _min?: NestedStringFilter
-    _max?: NestedStringFilter
+    not?: NestedStringWithAggregatesFilter<$PrismaModel> | string
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedStringFilter<$PrismaModel>
+    _max?: NestedStringFilter<$PrismaModel>
   }
 
   export type HospitalListRelationFilter = {
@@ -4191,15 +4386,15 @@ export namespace Prisma {
     name?: SortOrder
   }
 
-  export type DateTimeFilter = {
-    equals?: Date | string
-    in?: Enumerable<Date> | Enumerable<string> | Date | string
-    notIn?: Enumerable<Date> | Enumerable<string> | Date | string
-    lt?: Date | string
-    lte?: Date | string
-    gt?: Date | string
-    gte?: Date | string
-    not?: NestedDateTimeFilter | Date | string
+  export type DateTimeFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeFilter<$PrismaModel> | Date | string
   }
 
   export type DoctorRelationFilter = {
@@ -4236,44 +4431,44 @@ export namespace Prisma {
     hospitalId?: SortOrder
   }
 
-  export type DateTimeWithAggregatesFilter = {
-    equals?: Date | string
-    in?: Enumerable<Date> | Enumerable<string> | Date | string
-    notIn?: Enumerable<Date> | Enumerable<string> | Date | string
-    lt?: Date | string
-    lte?: Date | string
-    gt?: Date | string
-    gte?: Date | string
-    not?: NestedDateTimeWithAggregatesFilter | Date | string
-    _count?: NestedIntFilter
-    _min?: NestedDateTimeFilter
-    _max?: NestedDateTimeFilter
+  export type DateTimeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeWithAggregatesFilter<$PrismaModel> | Date | string
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedDateTimeFilter<$PrismaModel>
+    _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
   export type DoctorCreateNestedManyWithoutHospitalsInput = {
-    create?: XOR<Enumerable<DoctorCreateWithoutHospitalsInput>, Enumerable<DoctorUncheckedCreateWithoutHospitalsInput>>
-    connectOrCreate?: Enumerable<DoctorCreateOrConnectWithoutHospitalsInput>
-    connect?: Enumerable<DoctorWhereUniqueInput>
+    create?: XOR<DoctorCreateWithoutHospitalsInput, DoctorUncheckedCreateWithoutHospitalsInput> | DoctorCreateWithoutHospitalsInput[] | DoctorUncheckedCreateWithoutHospitalsInput[]
+    connectOrCreate?: DoctorCreateOrConnectWithoutHospitalsInput | DoctorCreateOrConnectWithoutHospitalsInput[]
+    connect?: DoctorWhereUniqueInput | DoctorWhereUniqueInput[]
   }
 
   export type ScheduleCreateNestedManyWithoutHospitalInput = {
-    create?: XOR<Enumerable<ScheduleCreateWithoutHospitalInput>, Enumerable<ScheduleUncheckedCreateWithoutHospitalInput>>
-    connectOrCreate?: Enumerable<ScheduleCreateOrConnectWithoutHospitalInput>
+    create?: XOR<ScheduleCreateWithoutHospitalInput, ScheduleUncheckedCreateWithoutHospitalInput> | ScheduleCreateWithoutHospitalInput[] | ScheduleUncheckedCreateWithoutHospitalInput[]
+    connectOrCreate?: ScheduleCreateOrConnectWithoutHospitalInput | ScheduleCreateOrConnectWithoutHospitalInput[]
     createMany?: ScheduleCreateManyHospitalInputEnvelope
-    connect?: Enumerable<ScheduleWhereUniqueInput>
+    connect?: ScheduleWhereUniqueInput | ScheduleWhereUniqueInput[]
   }
 
   export type DoctorUncheckedCreateNestedManyWithoutHospitalsInput = {
-    create?: XOR<Enumerable<DoctorCreateWithoutHospitalsInput>, Enumerable<DoctorUncheckedCreateWithoutHospitalsInput>>
-    connectOrCreate?: Enumerable<DoctorCreateOrConnectWithoutHospitalsInput>
-    connect?: Enumerable<DoctorWhereUniqueInput>
+    create?: XOR<DoctorCreateWithoutHospitalsInput, DoctorUncheckedCreateWithoutHospitalsInput> | DoctorCreateWithoutHospitalsInput[] | DoctorUncheckedCreateWithoutHospitalsInput[]
+    connectOrCreate?: DoctorCreateOrConnectWithoutHospitalsInput | DoctorCreateOrConnectWithoutHospitalsInput[]
+    connect?: DoctorWhereUniqueInput | DoctorWhereUniqueInput[]
   }
 
   export type ScheduleUncheckedCreateNestedManyWithoutHospitalInput = {
-    create?: XOR<Enumerable<ScheduleCreateWithoutHospitalInput>, Enumerable<ScheduleUncheckedCreateWithoutHospitalInput>>
-    connectOrCreate?: Enumerable<ScheduleCreateOrConnectWithoutHospitalInput>
+    create?: XOR<ScheduleCreateWithoutHospitalInput, ScheduleUncheckedCreateWithoutHospitalInput> | ScheduleCreateWithoutHospitalInput[] | ScheduleUncheckedCreateWithoutHospitalInput[]
+    connectOrCreate?: ScheduleCreateOrConnectWithoutHospitalInput | ScheduleCreateOrConnectWithoutHospitalInput[]
     createMany?: ScheduleCreateManyHospitalInputEnvelope
-    connect?: Enumerable<ScheduleWhereUniqueInput>
+    connect?: ScheduleWhereUniqueInput | ScheduleWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -4281,137 +4476,137 @@ export namespace Prisma {
   }
 
   export type DoctorUpdateManyWithoutHospitalsNestedInput = {
-    create?: XOR<Enumerable<DoctorCreateWithoutHospitalsInput>, Enumerable<DoctorUncheckedCreateWithoutHospitalsInput>>
-    connectOrCreate?: Enumerable<DoctorCreateOrConnectWithoutHospitalsInput>
-    upsert?: Enumerable<DoctorUpsertWithWhereUniqueWithoutHospitalsInput>
-    set?: Enumerable<DoctorWhereUniqueInput>
-    disconnect?: Enumerable<DoctorWhereUniqueInput>
-    delete?: Enumerable<DoctorWhereUniqueInput>
-    connect?: Enumerable<DoctorWhereUniqueInput>
-    update?: Enumerable<DoctorUpdateWithWhereUniqueWithoutHospitalsInput>
-    updateMany?: Enumerable<DoctorUpdateManyWithWhereWithoutHospitalsInput>
-    deleteMany?: Enumerable<DoctorScalarWhereInput>
+    create?: XOR<DoctorCreateWithoutHospitalsInput, DoctorUncheckedCreateWithoutHospitalsInput> | DoctorCreateWithoutHospitalsInput[] | DoctorUncheckedCreateWithoutHospitalsInput[]
+    connectOrCreate?: DoctorCreateOrConnectWithoutHospitalsInput | DoctorCreateOrConnectWithoutHospitalsInput[]
+    upsert?: DoctorUpsertWithWhereUniqueWithoutHospitalsInput | DoctorUpsertWithWhereUniqueWithoutHospitalsInput[]
+    set?: DoctorWhereUniqueInput | DoctorWhereUniqueInput[]
+    disconnect?: DoctorWhereUniqueInput | DoctorWhereUniqueInput[]
+    delete?: DoctorWhereUniqueInput | DoctorWhereUniqueInput[]
+    connect?: DoctorWhereUniqueInput | DoctorWhereUniqueInput[]
+    update?: DoctorUpdateWithWhereUniqueWithoutHospitalsInput | DoctorUpdateWithWhereUniqueWithoutHospitalsInput[]
+    updateMany?: DoctorUpdateManyWithWhereWithoutHospitalsInput | DoctorUpdateManyWithWhereWithoutHospitalsInput[]
+    deleteMany?: DoctorScalarWhereInput | DoctorScalarWhereInput[]
   }
 
   export type ScheduleUpdateManyWithoutHospitalNestedInput = {
-    create?: XOR<Enumerable<ScheduleCreateWithoutHospitalInput>, Enumerable<ScheduleUncheckedCreateWithoutHospitalInput>>
-    connectOrCreate?: Enumerable<ScheduleCreateOrConnectWithoutHospitalInput>
-    upsert?: Enumerable<ScheduleUpsertWithWhereUniqueWithoutHospitalInput>
+    create?: XOR<ScheduleCreateWithoutHospitalInput, ScheduleUncheckedCreateWithoutHospitalInput> | ScheduleCreateWithoutHospitalInput[] | ScheduleUncheckedCreateWithoutHospitalInput[]
+    connectOrCreate?: ScheduleCreateOrConnectWithoutHospitalInput | ScheduleCreateOrConnectWithoutHospitalInput[]
+    upsert?: ScheduleUpsertWithWhereUniqueWithoutHospitalInput | ScheduleUpsertWithWhereUniqueWithoutHospitalInput[]
     createMany?: ScheduleCreateManyHospitalInputEnvelope
-    set?: Enumerable<ScheduleWhereUniqueInput>
-    disconnect?: Enumerable<ScheduleWhereUniqueInput>
-    delete?: Enumerable<ScheduleWhereUniqueInput>
-    connect?: Enumerable<ScheduleWhereUniqueInput>
-    update?: Enumerable<ScheduleUpdateWithWhereUniqueWithoutHospitalInput>
-    updateMany?: Enumerable<ScheduleUpdateManyWithWhereWithoutHospitalInput>
-    deleteMany?: Enumerable<ScheduleScalarWhereInput>
+    set?: ScheduleWhereUniqueInput | ScheduleWhereUniqueInput[]
+    disconnect?: ScheduleWhereUniqueInput | ScheduleWhereUniqueInput[]
+    delete?: ScheduleWhereUniqueInput | ScheduleWhereUniqueInput[]
+    connect?: ScheduleWhereUniqueInput | ScheduleWhereUniqueInput[]
+    update?: ScheduleUpdateWithWhereUniqueWithoutHospitalInput | ScheduleUpdateWithWhereUniqueWithoutHospitalInput[]
+    updateMany?: ScheduleUpdateManyWithWhereWithoutHospitalInput | ScheduleUpdateManyWithWhereWithoutHospitalInput[]
+    deleteMany?: ScheduleScalarWhereInput | ScheduleScalarWhereInput[]
   }
 
   export type DoctorUncheckedUpdateManyWithoutHospitalsNestedInput = {
-    create?: XOR<Enumerable<DoctorCreateWithoutHospitalsInput>, Enumerable<DoctorUncheckedCreateWithoutHospitalsInput>>
-    connectOrCreate?: Enumerable<DoctorCreateOrConnectWithoutHospitalsInput>
-    upsert?: Enumerable<DoctorUpsertWithWhereUniqueWithoutHospitalsInput>
-    set?: Enumerable<DoctorWhereUniqueInput>
-    disconnect?: Enumerable<DoctorWhereUniqueInput>
-    delete?: Enumerable<DoctorWhereUniqueInput>
-    connect?: Enumerable<DoctorWhereUniqueInput>
-    update?: Enumerable<DoctorUpdateWithWhereUniqueWithoutHospitalsInput>
-    updateMany?: Enumerable<DoctorUpdateManyWithWhereWithoutHospitalsInput>
-    deleteMany?: Enumerable<DoctorScalarWhereInput>
+    create?: XOR<DoctorCreateWithoutHospitalsInput, DoctorUncheckedCreateWithoutHospitalsInput> | DoctorCreateWithoutHospitalsInput[] | DoctorUncheckedCreateWithoutHospitalsInput[]
+    connectOrCreate?: DoctorCreateOrConnectWithoutHospitalsInput | DoctorCreateOrConnectWithoutHospitalsInput[]
+    upsert?: DoctorUpsertWithWhereUniqueWithoutHospitalsInput | DoctorUpsertWithWhereUniqueWithoutHospitalsInput[]
+    set?: DoctorWhereUniqueInput | DoctorWhereUniqueInput[]
+    disconnect?: DoctorWhereUniqueInput | DoctorWhereUniqueInput[]
+    delete?: DoctorWhereUniqueInput | DoctorWhereUniqueInput[]
+    connect?: DoctorWhereUniqueInput | DoctorWhereUniqueInput[]
+    update?: DoctorUpdateWithWhereUniqueWithoutHospitalsInput | DoctorUpdateWithWhereUniqueWithoutHospitalsInput[]
+    updateMany?: DoctorUpdateManyWithWhereWithoutHospitalsInput | DoctorUpdateManyWithWhereWithoutHospitalsInput[]
+    deleteMany?: DoctorScalarWhereInput | DoctorScalarWhereInput[]
   }
 
   export type ScheduleUncheckedUpdateManyWithoutHospitalNestedInput = {
-    create?: XOR<Enumerable<ScheduleCreateWithoutHospitalInput>, Enumerable<ScheduleUncheckedCreateWithoutHospitalInput>>
-    connectOrCreate?: Enumerable<ScheduleCreateOrConnectWithoutHospitalInput>
-    upsert?: Enumerable<ScheduleUpsertWithWhereUniqueWithoutHospitalInput>
+    create?: XOR<ScheduleCreateWithoutHospitalInput, ScheduleUncheckedCreateWithoutHospitalInput> | ScheduleCreateWithoutHospitalInput[] | ScheduleUncheckedCreateWithoutHospitalInput[]
+    connectOrCreate?: ScheduleCreateOrConnectWithoutHospitalInput | ScheduleCreateOrConnectWithoutHospitalInput[]
+    upsert?: ScheduleUpsertWithWhereUniqueWithoutHospitalInput | ScheduleUpsertWithWhereUniqueWithoutHospitalInput[]
     createMany?: ScheduleCreateManyHospitalInputEnvelope
-    set?: Enumerable<ScheduleWhereUniqueInput>
-    disconnect?: Enumerable<ScheduleWhereUniqueInput>
-    delete?: Enumerable<ScheduleWhereUniqueInput>
-    connect?: Enumerable<ScheduleWhereUniqueInput>
-    update?: Enumerable<ScheduleUpdateWithWhereUniqueWithoutHospitalInput>
-    updateMany?: Enumerable<ScheduleUpdateManyWithWhereWithoutHospitalInput>
-    deleteMany?: Enumerable<ScheduleScalarWhereInput>
+    set?: ScheduleWhereUniqueInput | ScheduleWhereUniqueInput[]
+    disconnect?: ScheduleWhereUniqueInput | ScheduleWhereUniqueInput[]
+    delete?: ScheduleWhereUniqueInput | ScheduleWhereUniqueInput[]
+    connect?: ScheduleWhereUniqueInput | ScheduleWhereUniqueInput[]
+    update?: ScheduleUpdateWithWhereUniqueWithoutHospitalInput | ScheduleUpdateWithWhereUniqueWithoutHospitalInput[]
+    updateMany?: ScheduleUpdateManyWithWhereWithoutHospitalInput | ScheduleUpdateManyWithWhereWithoutHospitalInput[]
+    deleteMany?: ScheduleScalarWhereInput | ScheduleScalarWhereInput[]
   }
 
   export type HospitalCreateNestedManyWithoutDoctorsInput = {
-    create?: XOR<Enumerable<HospitalCreateWithoutDoctorsInput>, Enumerable<HospitalUncheckedCreateWithoutDoctorsInput>>
-    connectOrCreate?: Enumerable<HospitalCreateOrConnectWithoutDoctorsInput>
-    connect?: Enumerable<HospitalWhereUniqueInput>
+    create?: XOR<HospitalCreateWithoutDoctorsInput, HospitalUncheckedCreateWithoutDoctorsInput> | HospitalCreateWithoutDoctorsInput[] | HospitalUncheckedCreateWithoutDoctorsInput[]
+    connectOrCreate?: HospitalCreateOrConnectWithoutDoctorsInput | HospitalCreateOrConnectWithoutDoctorsInput[]
+    connect?: HospitalWhereUniqueInput | HospitalWhereUniqueInput[]
   }
 
   export type ScheduleCreateNestedManyWithoutDoctorInput = {
-    create?: XOR<Enumerable<ScheduleCreateWithoutDoctorInput>, Enumerable<ScheduleUncheckedCreateWithoutDoctorInput>>
-    connectOrCreate?: Enumerable<ScheduleCreateOrConnectWithoutDoctorInput>
+    create?: XOR<ScheduleCreateWithoutDoctorInput, ScheduleUncheckedCreateWithoutDoctorInput> | ScheduleCreateWithoutDoctorInput[] | ScheduleUncheckedCreateWithoutDoctorInput[]
+    connectOrCreate?: ScheduleCreateOrConnectWithoutDoctorInput | ScheduleCreateOrConnectWithoutDoctorInput[]
     createMany?: ScheduleCreateManyDoctorInputEnvelope
-    connect?: Enumerable<ScheduleWhereUniqueInput>
+    connect?: ScheduleWhereUniqueInput | ScheduleWhereUniqueInput[]
   }
 
   export type HospitalUncheckedCreateNestedManyWithoutDoctorsInput = {
-    create?: XOR<Enumerable<HospitalCreateWithoutDoctorsInput>, Enumerable<HospitalUncheckedCreateWithoutDoctorsInput>>
-    connectOrCreate?: Enumerable<HospitalCreateOrConnectWithoutDoctorsInput>
-    connect?: Enumerable<HospitalWhereUniqueInput>
+    create?: XOR<HospitalCreateWithoutDoctorsInput, HospitalUncheckedCreateWithoutDoctorsInput> | HospitalCreateWithoutDoctorsInput[] | HospitalUncheckedCreateWithoutDoctorsInput[]
+    connectOrCreate?: HospitalCreateOrConnectWithoutDoctorsInput | HospitalCreateOrConnectWithoutDoctorsInput[]
+    connect?: HospitalWhereUniqueInput | HospitalWhereUniqueInput[]
   }
 
   export type ScheduleUncheckedCreateNestedManyWithoutDoctorInput = {
-    create?: XOR<Enumerable<ScheduleCreateWithoutDoctorInput>, Enumerable<ScheduleUncheckedCreateWithoutDoctorInput>>
-    connectOrCreate?: Enumerable<ScheduleCreateOrConnectWithoutDoctorInput>
+    create?: XOR<ScheduleCreateWithoutDoctorInput, ScheduleUncheckedCreateWithoutDoctorInput> | ScheduleCreateWithoutDoctorInput[] | ScheduleUncheckedCreateWithoutDoctorInput[]
+    connectOrCreate?: ScheduleCreateOrConnectWithoutDoctorInput | ScheduleCreateOrConnectWithoutDoctorInput[]
     createMany?: ScheduleCreateManyDoctorInputEnvelope
-    connect?: Enumerable<ScheduleWhereUniqueInput>
+    connect?: ScheduleWhereUniqueInput | ScheduleWhereUniqueInput[]
   }
 
   export type HospitalUpdateManyWithoutDoctorsNestedInput = {
-    create?: XOR<Enumerable<HospitalCreateWithoutDoctorsInput>, Enumerable<HospitalUncheckedCreateWithoutDoctorsInput>>
-    connectOrCreate?: Enumerable<HospitalCreateOrConnectWithoutDoctorsInput>
-    upsert?: Enumerable<HospitalUpsertWithWhereUniqueWithoutDoctorsInput>
-    set?: Enumerable<HospitalWhereUniqueInput>
-    disconnect?: Enumerable<HospitalWhereUniqueInput>
-    delete?: Enumerable<HospitalWhereUniqueInput>
-    connect?: Enumerable<HospitalWhereUniqueInput>
-    update?: Enumerable<HospitalUpdateWithWhereUniqueWithoutDoctorsInput>
-    updateMany?: Enumerable<HospitalUpdateManyWithWhereWithoutDoctorsInput>
-    deleteMany?: Enumerable<HospitalScalarWhereInput>
+    create?: XOR<HospitalCreateWithoutDoctorsInput, HospitalUncheckedCreateWithoutDoctorsInput> | HospitalCreateWithoutDoctorsInput[] | HospitalUncheckedCreateWithoutDoctorsInput[]
+    connectOrCreate?: HospitalCreateOrConnectWithoutDoctorsInput | HospitalCreateOrConnectWithoutDoctorsInput[]
+    upsert?: HospitalUpsertWithWhereUniqueWithoutDoctorsInput | HospitalUpsertWithWhereUniqueWithoutDoctorsInput[]
+    set?: HospitalWhereUniqueInput | HospitalWhereUniqueInput[]
+    disconnect?: HospitalWhereUniqueInput | HospitalWhereUniqueInput[]
+    delete?: HospitalWhereUniqueInput | HospitalWhereUniqueInput[]
+    connect?: HospitalWhereUniqueInput | HospitalWhereUniqueInput[]
+    update?: HospitalUpdateWithWhereUniqueWithoutDoctorsInput | HospitalUpdateWithWhereUniqueWithoutDoctorsInput[]
+    updateMany?: HospitalUpdateManyWithWhereWithoutDoctorsInput | HospitalUpdateManyWithWhereWithoutDoctorsInput[]
+    deleteMany?: HospitalScalarWhereInput | HospitalScalarWhereInput[]
   }
 
   export type ScheduleUpdateManyWithoutDoctorNestedInput = {
-    create?: XOR<Enumerable<ScheduleCreateWithoutDoctorInput>, Enumerable<ScheduleUncheckedCreateWithoutDoctorInput>>
-    connectOrCreate?: Enumerable<ScheduleCreateOrConnectWithoutDoctorInput>
-    upsert?: Enumerable<ScheduleUpsertWithWhereUniqueWithoutDoctorInput>
+    create?: XOR<ScheduleCreateWithoutDoctorInput, ScheduleUncheckedCreateWithoutDoctorInput> | ScheduleCreateWithoutDoctorInput[] | ScheduleUncheckedCreateWithoutDoctorInput[]
+    connectOrCreate?: ScheduleCreateOrConnectWithoutDoctorInput | ScheduleCreateOrConnectWithoutDoctorInput[]
+    upsert?: ScheduleUpsertWithWhereUniqueWithoutDoctorInput | ScheduleUpsertWithWhereUniqueWithoutDoctorInput[]
     createMany?: ScheduleCreateManyDoctorInputEnvelope
-    set?: Enumerable<ScheduleWhereUniqueInput>
-    disconnect?: Enumerable<ScheduleWhereUniqueInput>
-    delete?: Enumerable<ScheduleWhereUniqueInput>
-    connect?: Enumerable<ScheduleWhereUniqueInput>
-    update?: Enumerable<ScheduleUpdateWithWhereUniqueWithoutDoctorInput>
-    updateMany?: Enumerable<ScheduleUpdateManyWithWhereWithoutDoctorInput>
-    deleteMany?: Enumerable<ScheduleScalarWhereInput>
+    set?: ScheduleWhereUniqueInput | ScheduleWhereUniqueInput[]
+    disconnect?: ScheduleWhereUniqueInput | ScheduleWhereUniqueInput[]
+    delete?: ScheduleWhereUniqueInput | ScheduleWhereUniqueInput[]
+    connect?: ScheduleWhereUniqueInput | ScheduleWhereUniqueInput[]
+    update?: ScheduleUpdateWithWhereUniqueWithoutDoctorInput | ScheduleUpdateWithWhereUniqueWithoutDoctorInput[]
+    updateMany?: ScheduleUpdateManyWithWhereWithoutDoctorInput | ScheduleUpdateManyWithWhereWithoutDoctorInput[]
+    deleteMany?: ScheduleScalarWhereInput | ScheduleScalarWhereInput[]
   }
 
   export type HospitalUncheckedUpdateManyWithoutDoctorsNestedInput = {
-    create?: XOR<Enumerable<HospitalCreateWithoutDoctorsInput>, Enumerable<HospitalUncheckedCreateWithoutDoctorsInput>>
-    connectOrCreate?: Enumerable<HospitalCreateOrConnectWithoutDoctorsInput>
-    upsert?: Enumerable<HospitalUpsertWithWhereUniqueWithoutDoctorsInput>
-    set?: Enumerable<HospitalWhereUniqueInput>
-    disconnect?: Enumerable<HospitalWhereUniqueInput>
-    delete?: Enumerable<HospitalWhereUniqueInput>
-    connect?: Enumerable<HospitalWhereUniqueInput>
-    update?: Enumerable<HospitalUpdateWithWhereUniqueWithoutDoctorsInput>
-    updateMany?: Enumerable<HospitalUpdateManyWithWhereWithoutDoctorsInput>
-    deleteMany?: Enumerable<HospitalScalarWhereInput>
+    create?: XOR<HospitalCreateWithoutDoctorsInput, HospitalUncheckedCreateWithoutDoctorsInput> | HospitalCreateWithoutDoctorsInput[] | HospitalUncheckedCreateWithoutDoctorsInput[]
+    connectOrCreate?: HospitalCreateOrConnectWithoutDoctorsInput | HospitalCreateOrConnectWithoutDoctorsInput[]
+    upsert?: HospitalUpsertWithWhereUniqueWithoutDoctorsInput | HospitalUpsertWithWhereUniqueWithoutDoctorsInput[]
+    set?: HospitalWhereUniqueInput | HospitalWhereUniqueInput[]
+    disconnect?: HospitalWhereUniqueInput | HospitalWhereUniqueInput[]
+    delete?: HospitalWhereUniqueInput | HospitalWhereUniqueInput[]
+    connect?: HospitalWhereUniqueInput | HospitalWhereUniqueInput[]
+    update?: HospitalUpdateWithWhereUniqueWithoutDoctorsInput | HospitalUpdateWithWhereUniqueWithoutDoctorsInput[]
+    updateMany?: HospitalUpdateManyWithWhereWithoutDoctorsInput | HospitalUpdateManyWithWhereWithoutDoctorsInput[]
+    deleteMany?: HospitalScalarWhereInput | HospitalScalarWhereInput[]
   }
 
   export type ScheduleUncheckedUpdateManyWithoutDoctorNestedInput = {
-    create?: XOR<Enumerable<ScheduleCreateWithoutDoctorInput>, Enumerable<ScheduleUncheckedCreateWithoutDoctorInput>>
-    connectOrCreate?: Enumerable<ScheduleCreateOrConnectWithoutDoctorInput>
-    upsert?: Enumerable<ScheduleUpsertWithWhereUniqueWithoutDoctorInput>
+    create?: XOR<ScheduleCreateWithoutDoctorInput, ScheduleUncheckedCreateWithoutDoctorInput> | ScheduleCreateWithoutDoctorInput[] | ScheduleUncheckedCreateWithoutDoctorInput[]
+    connectOrCreate?: ScheduleCreateOrConnectWithoutDoctorInput | ScheduleCreateOrConnectWithoutDoctorInput[]
+    upsert?: ScheduleUpsertWithWhereUniqueWithoutDoctorInput | ScheduleUpsertWithWhereUniqueWithoutDoctorInput[]
     createMany?: ScheduleCreateManyDoctorInputEnvelope
-    set?: Enumerable<ScheduleWhereUniqueInput>
-    disconnect?: Enumerable<ScheduleWhereUniqueInput>
-    delete?: Enumerable<ScheduleWhereUniqueInput>
-    connect?: Enumerable<ScheduleWhereUniqueInput>
-    update?: Enumerable<ScheduleUpdateWithWhereUniqueWithoutDoctorInput>
-    updateMany?: Enumerable<ScheduleUpdateManyWithWhereWithoutDoctorInput>
-    deleteMany?: Enumerable<ScheduleScalarWhereInput>
+    set?: ScheduleWhereUniqueInput | ScheduleWhereUniqueInput[]
+    disconnect?: ScheduleWhereUniqueInput | ScheduleWhereUniqueInput[]
+    delete?: ScheduleWhereUniqueInput | ScheduleWhereUniqueInput[]
+    connect?: ScheduleWhereUniqueInput | ScheduleWhereUniqueInput[]
+    update?: ScheduleUpdateWithWhereUniqueWithoutDoctorInput | ScheduleUpdateWithWhereUniqueWithoutDoctorInput[]
+    updateMany?: ScheduleUpdateManyWithWhereWithoutDoctorInput | ScheduleUpdateManyWithWhereWithoutDoctorInput[]
+    deleteMany?: ScheduleScalarWhereInput | ScheduleScalarWhereInput[]
   }
 
   export type DoctorCreateNestedOneWithoutSchedulesInput = {
@@ -4435,7 +4630,7 @@ export namespace Prisma {
     connectOrCreate?: DoctorCreateOrConnectWithoutSchedulesInput
     upsert?: DoctorUpsertWithoutSchedulesInput
     connect?: DoctorWhereUniqueInput
-    update?: XOR<DoctorUpdateWithoutSchedulesInput, DoctorUncheckedUpdateWithoutSchedulesInput>
+    update?: XOR<XOR<DoctorUpdateToOneWithWhereWithoutSchedulesInput, DoctorUpdateWithoutSchedulesInput>, DoctorUncheckedUpdateWithoutSchedulesInput>
   }
 
   export type HospitalUpdateOneRequiredWithoutSchedulesNestedInput = {
@@ -4443,74 +4638,74 @@ export namespace Prisma {
     connectOrCreate?: HospitalCreateOrConnectWithoutSchedulesInput
     upsert?: HospitalUpsertWithoutSchedulesInput
     connect?: HospitalWhereUniqueInput
-    update?: XOR<HospitalUpdateWithoutSchedulesInput, HospitalUncheckedUpdateWithoutSchedulesInput>
+    update?: XOR<XOR<HospitalUpdateToOneWithWhereWithoutSchedulesInput, HospitalUpdateWithoutSchedulesInput>, HospitalUncheckedUpdateWithoutSchedulesInput>
   }
 
-  export type NestedStringFilter = {
-    equals?: string
-    in?: Enumerable<string> | string
-    notIn?: Enumerable<string> | string
-    lt?: string
-    lte?: string
-    gt?: string
-    gte?: string
-    contains?: string
-    startsWith?: string
-    endsWith?: string
-    not?: NestedStringFilter | string
+  export type NestedStringFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel>
+    in?: string[] | ListStringFieldRefInput<$PrismaModel>
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel>
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
+    not?: NestedStringFilter<$PrismaModel> | string
   }
 
-  export type NestedStringWithAggregatesFilter = {
-    equals?: string
-    in?: Enumerable<string> | string
-    notIn?: Enumerable<string> | string
-    lt?: string
-    lte?: string
-    gt?: string
-    gte?: string
-    contains?: string
-    startsWith?: string
-    endsWith?: string
-    not?: NestedStringWithAggregatesFilter | string
-    _count?: NestedIntFilter
-    _min?: NestedStringFilter
-    _max?: NestedStringFilter
+  export type NestedStringWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel>
+    in?: string[] | ListStringFieldRefInput<$PrismaModel>
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel>
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
+    not?: NestedStringWithAggregatesFilter<$PrismaModel> | string
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedStringFilter<$PrismaModel>
+    _max?: NestedStringFilter<$PrismaModel>
   }
 
-  export type NestedIntFilter = {
-    equals?: number
-    in?: Enumerable<number> | number
-    notIn?: Enumerable<number> | number
-    lt?: number
-    lte?: number
-    gt?: number
-    gte?: number
-    not?: NestedIntFilter | number
+  export type NestedIntFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntFilter<$PrismaModel> | number
   }
 
-  export type NestedDateTimeFilter = {
-    equals?: Date | string
-    in?: Enumerable<Date> | Enumerable<string> | Date | string
-    notIn?: Enumerable<Date> | Enumerable<string> | Date | string
-    lt?: Date | string
-    lte?: Date | string
-    gt?: Date | string
-    gte?: Date | string
-    not?: NestedDateTimeFilter | Date | string
+  export type NestedDateTimeFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeFilter<$PrismaModel> | Date | string
   }
 
-  export type NestedDateTimeWithAggregatesFilter = {
-    equals?: Date | string
-    in?: Enumerable<Date> | Enumerable<string> | Date | string
-    notIn?: Enumerable<Date> | Enumerable<string> | Date | string
-    lt?: Date | string
-    lte?: Date | string
-    gt?: Date | string
-    gte?: Date | string
-    not?: NestedDateTimeWithAggregatesFilter | Date | string
-    _count?: NestedIntFilter
-    _min?: NestedDateTimeFilter
-    _max?: NestedDateTimeFilter
+  export type NestedDateTimeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeWithAggregatesFilter<$PrismaModel> | Date | string
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedDateTimeFilter<$PrismaModel>
+    _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
   export type DoctorCreateWithoutHospitalsInput = {
@@ -4550,7 +4745,7 @@ export namespace Prisma {
   }
 
   export type ScheduleCreateManyHospitalInputEnvelope = {
-    data: Enumerable<ScheduleCreateManyHospitalInput>
+    data: ScheduleCreateManyHospitalInput | ScheduleCreateManyHospitalInput[]
     skipDuplicates?: boolean
   }
 
@@ -4567,15 +4762,15 @@ export namespace Prisma {
 
   export type DoctorUpdateManyWithWhereWithoutHospitalsInput = {
     where: DoctorScalarWhereInput
-    data: XOR<DoctorUpdateManyMutationInput, DoctorUncheckedUpdateManyWithoutDoctorsInput>
+    data: XOR<DoctorUpdateManyMutationInput, DoctorUncheckedUpdateManyWithoutHospitalsInput>
   }
 
   export type DoctorScalarWhereInput = {
-    AND?: Enumerable<DoctorScalarWhereInput>
-    OR?: Enumerable<DoctorScalarWhereInput>
-    NOT?: Enumerable<DoctorScalarWhereInput>
-    id?: StringFilter | string
-    name?: StringFilter | string
+    AND?: DoctorScalarWhereInput | DoctorScalarWhereInput[]
+    OR?: DoctorScalarWhereInput[]
+    NOT?: DoctorScalarWhereInput | DoctorScalarWhereInput[]
+    id?: StringFilter<"Doctor"> | string
+    name?: StringFilter<"Doctor"> | string
   }
 
   export type ScheduleUpsertWithWhereUniqueWithoutHospitalInput = {
@@ -4591,18 +4786,18 @@ export namespace Prisma {
 
   export type ScheduleUpdateManyWithWhereWithoutHospitalInput = {
     where: ScheduleScalarWhereInput
-    data: XOR<ScheduleUpdateManyMutationInput, ScheduleUncheckedUpdateManyWithoutSchedulesInput>
+    data: XOR<ScheduleUpdateManyMutationInput, ScheduleUncheckedUpdateManyWithoutHospitalInput>
   }
 
   export type ScheduleScalarWhereInput = {
-    AND?: Enumerable<ScheduleScalarWhereInput>
-    OR?: Enumerable<ScheduleScalarWhereInput>
-    NOT?: Enumerable<ScheduleScalarWhereInput>
-    id?: StringFilter | string
-    startTime?: DateTimeFilter | Date | string
-    endTime?: DateTimeFilter | Date | string
-    doctorId?: StringFilter | string
-    hospitalId?: StringFilter | string
+    AND?: ScheduleScalarWhereInput | ScheduleScalarWhereInput[]
+    OR?: ScheduleScalarWhereInput[]
+    NOT?: ScheduleScalarWhereInput | ScheduleScalarWhereInput[]
+    id?: StringFilter<"Schedule"> | string
+    startTime?: DateTimeFilter<"Schedule"> | Date | string
+    endTime?: DateTimeFilter<"Schedule"> | Date | string
+    doctorId?: StringFilter<"Schedule"> | string
+    hospitalId?: StringFilter<"Schedule"> | string
   }
 
   export type HospitalCreateWithoutDoctorsInput = {
@@ -4642,7 +4837,7 @@ export namespace Prisma {
   }
 
   export type ScheduleCreateManyDoctorInputEnvelope = {
-    data: Enumerable<ScheduleCreateManyDoctorInput>
+    data: ScheduleCreateManyDoctorInput | ScheduleCreateManyDoctorInput[]
     skipDuplicates?: boolean
   }
 
@@ -4659,15 +4854,15 @@ export namespace Prisma {
 
   export type HospitalUpdateManyWithWhereWithoutDoctorsInput = {
     where: HospitalScalarWhereInput
-    data: XOR<HospitalUpdateManyMutationInput, HospitalUncheckedUpdateManyWithoutHospitalsInput>
+    data: XOR<HospitalUpdateManyMutationInput, HospitalUncheckedUpdateManyWithoutDoctorsInput>
   }
 
   export type HospitalScalarWhereInput = {
-    AND?: Enumerable<HospitalScalarWhereInput>
-    OR?: Enumerable<HospitalScalarWhereInput>
-    NOT?: Enumerable<HospitalScalarWhereInput>
-    id?: StringFilter | string
-    name?: StringFilter | string
+    AND?: HospitalScalarWhereInput | HospitalScalarWhereInput[]
+    OR?: HospitalScalarWhereInput[]
+    NOT?: HospitalScalarWhereInput | HospitalScalarWhereInput[]
+    id?: StringFilter<"Hospital"> | string
+    name?: StringFilter<"Hospital"> | string
   }
 
   export type ScheduleUpsertWithWhereUniqueWithoutDoctorInput = {
@@ -4683,7 +4878,7 @@ export namespace Prisma {
 
   export type ScheduleUpdateManyWithWhereWithoutDoctorInput = {
     where: ScheduleScalarWhereInput
-    data: XOR<ScheduleUpdateManyMutationInput, ScheduleUncheckedUpdateManyWithoutSchedulesInput>
+    data: XOR<ScheduleUpdateManyMutationInput, ScheduleUncheckedUpdateManyWithoutDoctorInput>
   }
 
   export type DoctorCreateWithoutSchedulesInput = {
@@ -4723,6 +4918,12 @@ export namespace Prisma {
   export type DoctorUpsertWithoutSchedulesInput = {
     update: XOR<DoctorUpdateWithoutSchedulesInput, DoctorUncheckedUpdateWithoutSchedulesInput>
     create: XOR<DoctorCreateWithoutSchedulesInput, DoctorUncheckedCreateWithoutSchedulesInput>
+    where?: DoctorWhereInput
+  }
+
+  export type DoctorUpdateToOneWithWhereWithoutSchedulesInput = {
+    where?: DoctorWhereInput
+    data: XOR<DoctorUpdateWithoutSchedulesInput, DoctorUncheckedUpdateWithoutSchedulesInput>
   }
 
   export type DoctorUpdateWithoutSchedulesInput = {
@@ -4740,6 +4941,12 @@ export namespace Prisma {
   export type HospitalUpsertWithoutSchedulesInput = {
     update: XOR<HospitalUpdateWithoutSchedulesInput, HospitalUncheckedUpdateWithoutSchedulesInput>
     create: XOR<HospitalCreateWithoutSchedulesInput, HospitalUncheckedCreateWithoutSchedulesInput>
+    where?: HospitalWhereInput
+  }
+
+  export type HospitalUpdateToOneWithWhereWithoutSchedulesInput = {
+    where?: HospitalWhereInput
+    data: XOR<HospitalUpdateWithoutSchedulesInput, HospitalUncheckedUpdateWithoutSchedulesInput>
   }
 
   export type HospitalUpdateWithoutSchedulesInput = {
@@ -4773,7 +4980,7 @@ export namespace Prisma {
     schedules?: ScheduleUncheckedUpdateManyWithoutDoctorNestedInput
   }
 
-  export type DoctorUncheckedUpdateManyWithoutDoctorsInput = {
+  export type DoctorUncheckedUpdateManyWithoutHospitalsInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
   }
@@ -4792,7 +4999,7 @@ export namespace Prisma {
     doctorId?: StringFieldUpdateOperationsInput | string
   }
 
-  export type ScheduleUncheckedUpdateManyWithoutSchedulesInput = {
+  export type ScheduleUncheckedUpdateManyWithoutHospitalInput = {
     id?: StringFieldUpdateOperationsInput | string
     startTime?: DateTimeFieldUpdateOperationsInput | Date | string
     endTime?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -4818,7 +5025,7 @@ export namespace Prisma {
     schedules?: ScheduleUncheckedUpdateManyWithoutHospitalNestedInput
   }
 
-  export type HospitalUncheckedUpdateManyWithoutHospitalsInput = {
+  export type HospitalUncheckedUpdateManyWithoutDoctorsInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
   }
@@ -4837,7 +5044,38 @@ export namespace Prisma {
     hospitalId?: StringFieldUpdateOperationsInput | string
   }
 
+  export type ScheduleUncheckedUpdateManyWithoutDoctorInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    hospitalId?: StringFieldUpdateOperationsInput | string
+  }
 
+
+
+  /**
+   * Aliases for legacy arg types
+   */
+    /**
+     * @deprecated Use HospitalCountOutputTypeDefaultArgs instead
+     */
+    export type HospitalCountOutputTypeArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = HospitalCountOutputTypeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use DoctorCountOutputTypeDefaultArgs instead
+     */
+    export type DoctorCountOutputTypeArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = DoctorCountOutputTypeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use HospitalDefaultArgs instead
+     */
+    export type HospitalArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = HospitalDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use DoctorDefaultArgs instead
+     */
+    export type DoctorArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = DoctorDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use ScheduleDefaultArgs instead
+     */
+    export type ScheduleArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = ScheduleDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany
