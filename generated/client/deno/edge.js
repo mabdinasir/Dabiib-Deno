@@ -1,7 +1,7 @@
-
+const exports = {}
 Object.defineProperty(exports, "__esModule", { value: true });
 
-const {
+import {
   PrismaClientKnownRequestError,
   PrismaClientUnknownRequestError,
   PrismaClientRustPanicError,
@@ -19,10 +19,8 @@ const {
   objectEnumValues,
   makeStrictEnum,
   Extensions,
-  warnOnce,
-  defineDmmfProperty,
-} = require('./runtime/edge')
-
+  defineDmmfProperty
+} from '.././runtime/edge-esm.js'
 
 const Prisma = {}
 
@@ -189,4 +187,5 @@ if (typeof globalThis !== 'undefined' && globalThis['DEBUG'] || typeof process !
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)
+export { exports as default, Prisma, PrismaClient }
 
